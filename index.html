@@ -1,0 +1,533 @@
+
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Aplicație Miller–Rabin</title>
+  <style>
+    :root {
+      --bg: #f5f7fb;
+      --card: #ffffff;
+      --text: #1f2937;
+      --muted: #6b7280;
+      --line: #dbe3ef;
+      --green-bg: #eaf8e8;
+      --green-border: #b8dfb4;
+      --green-text: #2f6d2d;
+      --red-bg: #fde8e8;
+      --red-border: #efb5b5;
+      --red-text: #a33a3a;
+      --accent: #2563eb;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      padding: 28px 16px;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .header {
+      margin-bottom: 18px;
+    }
+
+    .header h1 {
+      margin: 0 0 8px;
+      font-size: 32px;
+    }
+
+    .header p {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.5;
+    }
+
+    .panel {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 20px;
+      box-shadow: 0 12px 30px rgba(15, 23, 42, 0.06);
+      margin-bottom: 18px;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 16px;
+      align-items: end;
+    }
+
+    label {
+      display: block;
+      font-size: 14px;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+
+    input {
+      width: 100%;
+      padding: 12px 14px;
+      border-radius: 12px;
+      border: 1px solid var(--line);
+      font-size: 16px;
+      background: #fff;
+    }
+
+    .btn-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-top: 16px;
+    }
+
+    button {
+      border: 0;
+      border-radius: 12px;
+      padding: 12px 18px;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .btn-primary {
+      background: var(--accent);
+      color: white;
+    }
+
+    .btn-secondary {
+      background: #eef2ff;
+      color: #1e40af;
+    }
+
+    .solution-box {
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 22px;
+      background: #fff;
+    }
+
+    .section-title {
+      font-size: 22px;
+      margin: 0 0 14px;
+    }
+
+    .sub-title {
+      margin: 20px 0 10px;
+      font-size: 18px;
+    }
+
+    .inline-row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      align-items: center;
+      margin: 8px 0;
+    }
+
+    .label-text {
+      font-weight: 700;
+    }
+
+    .cell {
+      min-width: 70px;
+      padding: 9px 10px;
+      border-radius: 8px;
+      border: 1px solid var(--green-border);
+      background: var(--green-bg);
+      color: var(--green-text);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      font-weight: 700;
+    }
+
+    .cell.long {
+      min-width: 140px;
+    }
+
+    .ok {
+      color: #16a34a;
+      font-weight: 700;
+      margin-left: 4px;
+    }
+
+    .bad {
+      color: #dc2626;
+      font-weight: 700;
+      margin-left: 4px;
+    }
+
+    .iter-card {
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 16px;
+      margin-top: 16px;
+      background: #fafcff;
+    }
+
+    .iter-card.compus {
+      border-color: var(--red-border);
+      background: var(--red-bg);
+    }
+
+    .muted {
+      color: var(--muted);
+    }
+
+    .formula {
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    .footer-result {
+      margin-top: 20px;
+      padding: 14px;
+      border-radius: 12px;
+      font-size: 18px;
+      font-weight: 700;
+      border: 1px solid var(--green-border);
+      background: var(--green-bg);
+      color: var(--green-text);
+    }
+
+    .footer-result.compus {
+      border-color: var(--red-border);
+      background: var(--red-bg);
+      color: var(--red-text);
+    }
+
+    @media (max-width: 700px) {
+      .header h1 { font-size: 25px; }
+      .cell { min-width: 60px; font-size: 14px; }
+      .cell.long { min-width: 110px; }
+    }
+    html, body {
+  height: 100%;
+}
+
+body {
+  display: flex;
+  flex-direction: column;
+}
+
+.container {
+  flex: 1;
+}
+
+.footer {
+  text-align: center;
+  padding: 20px 0;
+  color: #6b7280;
+  font-size: 14px;
+  border-top: 1px solid #dbe3ef;
+  background: #ffffff;
+}
+  </style>
+</head>
+</script>
+
+
+
+</body>
+</html>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1> Testul Miller–Rabin</h1>
+      <p>
+        
+        Programul este conceput pentru efectuatrea Testul Miller–Rabin.Introduci valoarea lui <strong>n</strong>, alegi bazele și primești automat descompunerea, iterațiile și concluzia.
+      </p>
+    </div>
+
+    <div class="panel">
+      <div class="form-grid">
+        <div>
+          <label for="nInput">Numărul n</label>
+          <input id="nInput" type="number" min="2" step="1" />
+        </div>
+        <div>
+          <label for="basesInput">Baze (separate prin virgulă)</label>
+          <input id="basesInput" type="text" value="2,3,5" />
+        </div>
+      </div>
+      <div class="btn-row">
+        <button class="btn-primary" id="solveBtn">Rezolvă exercițiul</button>
+        
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="solution-box" id="output"></div>
+    </div>
+  </div>
+
+  <script>
+    function modMul(a, b, mod) {
+      let rezultat = 0n;
+      a = ((a % mod) + mod) % mod;
+      b = ((b % mod) + mod) % mod;
+
+      while (b > 0n) {
+        if (b & 1n) {
+          rezultat = (rezultat + a) % mod;
+        }
+        a = (a * 2n) % mod;
+        b >>= 1n;
+      }
+
+      return rezultat;
+    }
+
+    function modPow(baza, exp, mod) {
+      let rezultat = 1n % mod;
+      baza = ((baza % mod) + mod) % mod;
+
+      while (exp > 0n) {
+        if (exp & 1n) {
+          rezultat = modMul(rezultat, baza, mod);
+        }
+        baza = modMul(baza, baza, mod);
+        exp >>= 1n;
+      }
+
+      return rezultat;
+    }
+
+    function toBinary(x) {
+      if (x === 0n) return '0';
+
+      let s = '';
+      while (x > 0n) {
+        s = String(x % 2n) + s;
+        x /= 2n;
+      }
+      return s;
+    }
+
+    function calculeazaIteratie(n, a, s, t) {
+      const rez = {
+        sus: [],
+        jos: [],
+        compus: false
+      };
+
+      const tBin = toBinary(t);
+      const necesareSus = tBin.length;
+
+      let val = a % n;
+      for (let i = 0; i < 10; i++) {
+        if (i < necesareSus) {
+          rez.sus.push(val.toString());
+          val = modMul(val, val, n);
+        } else {
+          rez.sus.push('x');
+        }
+      }
+
+      const lantValori = [];
+      let x = modPow(a, t, n);
+      lantValori.push(x);
+
+      for (let i = 1; i <= Number(s); i++) {
+        x = modMul(x, x, n);
+        lantValori.push(x);
+      }
+
+      for (let i = 0; i < 5; i++) {
+        if (i <= Number(s)) {
+          rez.jos.push(lantValori[i].toString());
+        } else {
+          rez.jos.push('x');
+        }
+      }
+
+      let trece = false;
+
+      if (lantValori[0] === 1n || lantValori[0] === n - 1n) {
+        trece = true;
+      } else {
+        for (let i = 1; i < lantValori.length; i++) {
+          if (lantValori[i] === n - 1n) {
+            trece = true;
+            break;
+          }
+        }
+      }
+
+      rez.compus = !trece;
+      return rez;
+    }
+
+    function iteratieX(a) {
+      return {
+        sus: Array(10).fill('x'),
+        jos: Array(5).fill('x'),
+        compus: false,
+        skip: true,
+        baza: a.toString()
+      };
+    }
+
+    function parseBases(text) {
+      return text
+        .split(',')
+        .map(v => v.trim())
+        .filter(Boolean)
+        .map(v => BigInt(v));
+    }
+
+    function renderCell(value, extraClass = '') {
+      return `<span class="cell ${extraClass}">${value}</span><span class="ok">✓</span>`;
+    }
+
+    function renderIteratie(a, rez, index) {
+      return `
+        <div class="iter-card ${rez.compus ? 'compus' : ''}">
+          <div class="sub-title">Iterația k = ${index + 1} pentru a = ${a} (rezultate mod n)</div>
+
+          <div class="inline-row">
+            <span class="formula">${a}<sup>2<sup>0</sup></sup> =</span> ${renderCell(rez.sus[0])}
+            <span class="formula">${a}<sup>2<sup>1</sup></sup> =</span> ${renderCell(rez.sus[1])}
+            <span class="formula">${a}<sup>2<sup>2</sup></sup> =</span> ${renderCell(rez.sus[2])}
+            <span class="formula">${a}<sup>2<sup>3</sup></sup> =</span> ${renderCell(rez.sus[3])}
+            <span class="formula">${a}<sup>2<sup>4</sup></sup> =</span> ${renderCell(rez.sus[4])}
+          </div>
+
+          <div class="inline-row">
+            <span class="formula">${a}<sup>2<sup>5</sup></sup> =</span> ${renderCell(rez.sus[5])}
+            <span class="formula">${a}<sup>2<sup>6</sup></sup> =</span> ${renderCell(rez.sus[6])}
+            <span class="formula">${a}<sup>2<sup>7</sup></sup> =</span> ${renderCell(rez.sus[7])}
+            <span class="formula">${a}<sup>2<sup>8</sup></sup> =</span> ${renderCell(rez.sus[8])}
+            <span class="formula">${a}<sup>2<sup>9</sup></sup> =</span> ${renderCell(rez.sus[9])}
+          </div>
+
+          <div class="inline-row" style="margin-top:14px;">
+            <span class="formula">${a}<sup>t</sup> =</span> ${renderCell(rez.jos[0])}
+            <span class="formula">${a}<sup>2t</sup> =</span> ${renderCell(rez.jos[1])}
+            <span class="formula">${a}<sup>2<sup>2</sup>t</sup> =</span> ${renderCell(rez.jos[2])}
+            <span class="formula">${a}<sup>2<sup>3</sup>t</sup> =</span> ${renderCell(rez.jos[3])}
+            <span class="formula">${a}<sup>2<sup>4</sup>t</sup> =</span> ${renderCell(rez.jos[4])}
+          </div>
+
+          <div class="inline-row" style="margin-top:12px;">
+            <span class="label-text">Verdict pentru baza ${a}:</span>
+            <span class="${rez.compus ? 'bad' : 'ok'}">${rez.compus ? 'numărul este compus la această bază' : 'baza trece testul'}</span>
+          </div>
+        </div>
+      `;
+    }
+
+    function solve() {
+      const output = document.getElementById('output');
+      let n;
+      let baze;
+
+      try {
+        n = BigInt(document.getElementById('nInput').value.trim());
+        baze = parseBases(document.getElementById('basesInput').value.trim());
+      } catch (e) {
+        output.innerHTML = '<div class="bad">Date invalide. Verifică valorile introduse.</div>';
+        return;
+      }
+
+      if (n < 2n) {
+        output.innerHTML = '<div class="bad">n trebuie să fie ≥ 2.</div>';
+        return;
+      }
+
+      if (n === 2n || n === 3n) {
+        output.innerHTML = `
+          <h2 class="section-title">Soluție</h2>
+          <div class="footer-result">Concluzie: n este prim (da/nu): da</div>
+        `;
+        return;
+      }
+
+      if (n % 2n === 0n) {
+        output.innerHTML = `
+          <h2 class="section-title">Soluție</h2>
+          <div class="footer-result compus">n este par, deci nu este prim.</div>
+        `;
+        return;
+      }
+
+      let s = 0n;
+      let t = n - 1n;
+      while (t % 2n === 0n) {
+        t /= 2n;
+        s++;
+      }
+
+      let compus = false;
+      const rezultate = [];
+
+      for (let i = 0; i < baze.length; i++) {
+        const a = baze[i];
+
+        if (compus) {
+          rezultate.push({ a, rez: iteratieX(a) });
+          continue;
+        }
+
+        if (a % n === 0n) {
+          rezultate.push({ a, rez: iteratieX(a) });
+          continue;
+        }
+
+        const rez = calculeazaIteratie(n, a, s, t);
+        rezultate.push({ a, rez });
+
+        if (rez.compus) {
+          compus = true;
+        }
+      }
+
+      let html = `
+        <h2 class="section-title">Soluție</h2>
+        <div class="sub-title">Descompunere</div>
+        <div class="inline-row">
+          <span class="label-text">s =</span> ${renderCell(s.toString())}
+          <span class="label-text">t =</span> ${renderCell(t.toString())}
+          <span class="label-text">t în binar =</span> ${renderCell(toBinary(t), 'long')}
+        </div>
+      `;
+
+      rezultate.forEach((item, index) => {
+        html += renderIteratie(item.a.toString(), item.rez, index);
+      });
+
+      html += `
+        <div class="footer-result ${compus ? 'compus' : ''}">
+          Concluzie: n este prim (da/nu): ${compus ? 'nu' : 'da'}
+        </div>
+      `;
+
+      output.innerHTML = html;
+    }
+
+    document.getElementById('solveBtn').addEventListener('click', solve);
+    document.getElementById('exampleBtn').addEventListener('click', () => {
+      document.getElementById('nInput').value = '1609';
+      document.getElementById('basesInput').value = '2,3,5,7,11';
+      solve();
+    });
+
+    solve();
+  </script>
+  <footer class="footer">
+  © 2026 Project by Muntean 
+</footer>
+</body>
+</html>
