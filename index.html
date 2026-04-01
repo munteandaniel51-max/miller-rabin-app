@@ -1,10 +1,9 @@
-
 <!DOCTYPE html>
 <html lang="ro">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Aplicație Miller–Rabin</title>
+  <title>Calculatoare de primalitate și factorizare</title>
   <style>
     :root {
       --bg: #f5f7fb;
@@ -19,12 +18,19 @@
       --red-border: #efb5b5;
       --red-text: #a33a3a;
       --accent: #2563eb;
+      --soft-blue: #eef4ff;
     }
 
     * { box-sizing: border-box; }
 
-    body {
+    html, body {
+      height: 100%;
       margin: 0;
+    }
+
+    body {
+      display: flex;
+      flex-direction: column;
       font-family: Arial, Helvetica, sans-serif;
       background: var(--bg);
       color: var(--text);
@@ -34,6 +40,8 @@
     .container {
       max-width: 1200px;
       margin: 0 auto;
+      width: 100%;
+      flex: 1;
     }
 
     .header {
@@ -60,6 +68,13 @@
       margin-bottom: 18px;
     }
 
+    .toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+      align-items: end;
+    }
+
     .form-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
@@ -74,7 +89,7 @@
       margin-bottom: 8px;
     }
 
-    input {
+    input, select {
       width: 100%;
       padding: 12px 14px;
       border-radius: 12px;
@@ -104,16 +119,12 @@
       color: white;
     }
 
-    .btn-secondary {
-      background: #eef2ff;
-      color: #1e40af;
-    }
-
     .solution-box {
       border: 1px solid var(--line);
       border-radius: 18px;
       padding: 22px;
       background: #fff;
+      min-height: 120px;
     }
 
     .section-title {
@@ -181,10 +192,6 @@
       background: var(--red-bg);
     }
 
-    .muted {
-      color: var(--muted);
-    }
-
     .formula {
       font-weight: 700;
       white-space: nowrap;
@@ -207,51 +214,158 @@
       color: var(--red-text);
     }
 
+    .hidden {
+      display: none;
+    }
+
+    .pollard-table {
+      display: grid;
+      gap: 10px;
+      margin-top: 16px;
+    }
+
+    .pollard-row {
+      display: grid;
+      grid-template-columns: 80px 120px 80px 120px 1fr 120px;
+      gap: 10px;
+      align-items: center;
+      padding: 8px 0;
+      border-bottom: 1px solid #eef2f7;
+    }
+
+    .pollard-row:last-child {
+      border-bottom: 0;
+    }
+
+    .pollard-label {
+      font-weight: 700;
+    }
+
+    .pollard-value {
+      padding: 10px 12px;
+      border-radius: 8px;
+      border: 1px solid var(--line);
+      background: #f8fafc;
+      min-height: 42px;
+      display: flex;
+      align-items: center;
+    }
+
+    .pollard-gcd {
+      font-style: italic;
+      color: #374151;
+      font-weight: 700;
+    }
+
+    .method-box {
+      padding: 12px 14px;
+      border-radius: 14px;
+      background: var(--soft-blue);
+      border: 1px solid #d7e3ff;
+      margin-bottom: 18px;
+      font-weight: 700;
+      color: #1e3a8a;
+    }
+
+    .footer {
+      text-align: center;
+      padding: 20px 0;
+      color: #6b7280;
+      font-size: 14px;
+      border-top: 1px solid #dbe3ef;
+      background: #ffffff;
+      margin-top: 20px;
+    }
+
+    @media (max-width: 900px) {
+      .pollard-row {
+        grid-template-columns: 1fr;
+        background: #fafcff;
+        border: 1px solid #e5edf7;
+        border-radius: 12px;
+        padding: 12px;
+      }
+    }
+
     @media (max-width: 700px) {
       .header h1 { font-size: 25px; }
       .cell { min-width: 60px; font-size: 14px; }
       .cell.long { min-width: 110px; }
     }
-    html, body {
-  height: 100%;
+
+    .fermat-table {
+  display: grid;
+  gap: 10px;
+  margin-top: 16px;
 }
 
-body {
+.fermat-row {
+  display: grid;
+  grid-template-columns: 220px 120px 220px 120px;
+  gap: 10px;
+  align-items: center;
+  padding: 8px 0;
+  border-bottom: 1px solid #eef2f7;
+}
+
+.fermat-row:last-child {
+  border-bottom: 0;
+}
+
+.fermat-label {
+  font-weight: 700;
+  color: #374151;
+}
+
+.fermat-value {
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--line);
+  background: #f8fafc;
+  min-height: 42px;
   display: flex;
-  flex-direction: column;
+  align-items: center;
 }
 
-.container {
-  flex: 1;
-}
-
-.footer {
-  text-align: center;
-  padding: 20px 0;
-  color: #6b7280;
-  font-size: 14px;
-  border-top: 1px solid #dbe3ef;
-  background: #ffffff;
+@media (max-width: 900px) {
+  .fermat-row {
+    grid-template-columns: 1fr;
+    background: #fafcff;
+    border: 1px solid #e5edf7;
+    border-radius: 12px;
+    padding: 12px;
+  }
 }
   </style>
 </head>
-</script>
-
-
-
-</body>
-</html>
 <body>
   <div class="container">
     <div class="header">
-      <h1> Testul Miller–Rabin</h1>
+      <h1>Calculatoare de primalitate și factorizare</h1>
       <p>
-        
-        Programul este conceput pentru efectuatrea Testul Miller–Rabin.Introduci valoarea lui <strong>n</strong>, alegi bazele și primești automat descompunerea, iterațiile și concluzia.
+        Alege metoda dorită din bara de control și completează datele de intrare.
       </p>
     </div>
 
     <div class="panel">
+      <div class="toolbar">
+        <div style="min-width: 280px;">
+          <label for="methodSelect">Alege calculatorul</label>
+          <select id="methodSelect">
+            <option value="miller">Testul Miller–Rabin</option>
+            <option value="pollard">Metoda ρ a lui Pollard</option>
+            <option value="fermat">Metoda lui Fermat</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <div class="method-box" id="methodDescription">
+      Calculator activ: Testul Miller–Rabin
+    </div>
+
+    <!-- Miller-Rabin -->
+    <div class="panel" id="millerPanel">
       <div class="form-grid">
         <div>
           <label for="nInput">Numărul n</label>
@@ -263,17 +377,81 @@ body {
         </div>
       </div>
       <div class="btn-row">
-        <button class="btn-primary" id="solveBtn">Rezolvă exercițiul</button>
-        
+        <button class="btn-primary" id="solveMillerBtn">Rezolvă exercițiul</button>
       </div>
     </div>
 
-    <div class="panel">
-      <div class="solution-box" id="output"></div>
+    <!-- Pollard -->
+    <div class="panel hidden" id="pollardPanel">
+      <div class="form-grid">
+        <div>
+          <label for="pollardNInput">Numărul n</label>
+          <input id="pollardNInput" type="number" min="2" step="1"  />
+        </div>
+
+        <div>
+          <label for="pollardFunctionInput">Funcția f(x)</label>
+          <input id="pollardFunctionInput" type="text"  />
+        </div>
+
+        <div>
+          <label for="pollardX0Input">Valoarea inițială x₀</label>
+          <input id="pollardX0Input" type="number" min="0" step="1"  />
+        </div>
+
+        <div>
+          <label for="pollardStepsInput">Număr maxim de perechi</label>
+          <input id="pollardStepsInput" type="number" min="1" step="1" value="10" />
+        </div>
+      </div>
+
+      <div class="btn-row">
+        <button class="btn-primary" id="solvePollardBtn">Rezolvă prin Pollard</button>
+      </div>
+    </div>
+
+    <!-- Fermat -->
+     <div class="panel hidden" id="fermatPanel">
+  <div class="form-grid">
+    <div>
+      <label for="fermatNInput">Numărul n</label>
+      <input id="fermatNInput" type="number" min="2" step="1" />
+    </div>
+
+    <div>
+      <label for="fermatStepsInput">Număr maxim de iterații</label>
+      <input id="fermatStepsInput" type="number" min="1" step="1" />
     </div>
   </div>
 
+  <div class="btn-row">
+    <button class="btn-primary" id="solveFermatBtn">Rezolvă prin Fermat</button>
+  </div>
+</div>
+
+    <div class="panel">
+      <div class="solution-box" id="output">
+        Selectează metoda și apasă pe butonul de rezolvare.
+      </div>
+    </div>
+  </div>
+
+  <footer class="footer">
+    © 2026 Project by Muntean
+  </footer>
+
   <script>
+    function gcd(a, b) {
+      a = a < 0n ? -a : a;
+      b = b < 0n ? -b : b;
+      while (b !== 0n) {
+        let r = a % b;
+        a = b;
+        b = r;
+      }
+      return a;
+    }
+
     function modMul(a, b, mod) {
       let rezultat = 0n;
       a = ((a % mod) + mod) % mod;
@@ -286,7 +464,6 @@ body {
         a = (a * 2n) % mod;
         b >>= 1n;
       }
-
       return rezultat;
     }
 
@@ -301,19 +478,29 @@ body {
         baza = modMul(baza, baza, mod);
         exp >>= 1n;
       }
-
       return rezultat;
     }
 
     function toBinary(x) {
       if (x === 0n) return '0';
-
       let s = '';
       while (x > 0n) {
         s = String(x % 2n) + s;
         x /= 2n;
       }
       return s;
+    }
+
+    function parseBases(text) {
+      return text
+        .split(',')
+        .map(v => v.trim())
+        .filter(Boolean)
+        .map(v => BigInt(v));
+    }
+
+    function renderCell(value, extraClass = '') {
+      return `<span class="cell ${extraClass}">${value}</span><span class="ok">✓</span>`;
     }
 
     function calculeazaIteratie(n, a, s, t) {
@@ -374,22 +561,8 @@ body {
       return {
         sus: Array(10).fill('x'),
         jos: Array(5).fill('x'),
-        compus: false,
-        skip: true,
-        baza: a.toString()
+        compus: false
       };
-    }
-
-    function parseBases(text) {
-      return text
-        .split(',')
-        .map(v => v.trim())
-        .filter(Boolean)
-        .map(v => BigInt(v));
-    }
-
-    function renderCell(value, extraClass = '') {
-      return `<span class="cell ${extraClass}">${value}</span><span class="ok">✓</span>`;
     }
 
     function renderIteratie(a, rez, index) {
@@ -429,13 +602,19 @@ body {
       `;
     }
 
-    function solve() {
+    function solveMiller() {
       const output = document.getElementById('output');
       let n;
       let baze;
 
       try {
-        n = BigInt(document.getElementById('nInput').value.trim());
+        const nText = document.getElementById('nInput').value.trim();
+        if (!nText) {
+          output.innerHTML = '<div class="bad">Introdu valoarea lui n.</div>';
+          return;
+        }
+
+        n = BigInt(nText);
         baze = parseBases(document.getElementById('basesInput').value.trim());
       } catch (e) {
         output.innerHTML = '<div class="bad">Date invalide. Verifică valorile introduse.</div>';
@@ -495,7 +674,7 @@ body {
       }
 
       let html = `
-        <h2 class="section-title">Soluție</h2>
+        <h2 class="section-title">Soluție — Miller–Rabin</h2>
         <div class="sub-title">Descompunere</div>
         <div class="inline-row">
           <span class="label-text">s =</span> ${renderCell(s.toString())}
@@ -517,17 +696,364 @@ body {
       output.innerHTML = html;
     }
 
-    document.getElementById('solveBtn').addEventListener('click', solve);
-    document.getElementById('exampleBtn').addEventListener('click', () => {
-      document.getElementById('nInput').value = '1609';
-      document.getElementById('basesInput').value = '2,3,5,7,11';
-      solve();
+    function buildFunction(expr) {
+      const normalized = expr.replace(/\^/g, '**').trim();
+
+      if (!normalized) {
+        throw new Error('Funcția f(x) nu poate fi goală.');
+      }
+
+      return function(x, n) {
+        const result = Function('x', 'n', `
+          return (${normalized});
+        `)(Number(x), Number(n));
+
+        if (!Number.isFinite(result)) {
+          throw new Error('Funcția f(x) a generat un rezultat invalid.');
+        }
+
+        let val = BigInt(Math.trunc(result));
+        val = ((val % n) + n) % n;
+        return val;
+      };
+    }
+
+    function solvePollard() {
+      const output = document.getElementById('output');
+
+      try {
+        const nText = document.getElementById('pollardNInput').value.trim();
+        const fxText = document.getElementById('pollardFunctionInput').value.trim();
+        const x0Text = document.getElementById('pollardX0Input').value.trim();
+        const stepsText = document.getElementById('pollardStepsInput').value.trim();
+
+        if (!nText || !fxText || !x0Text || !stepsText) {
+          output.innerHTML = '<div class="bad">Completează toate câmpurile pentru metoda lui Pollard.</div>';
+          return;
+        }
+
+        const n = BigInt(nText);
+        const x0 = BigInt(x0Text);
+        const maxPairs = Number(stepsText);
+
+        if (!nText || !fxText || !x0Text || !stepsText) {
+  output.innerHTML = '<div class="bad">Completează toate câmpurile pentru metoda lui Pollard.</div>';
+  return;
+}
+
+        if (n <= 1n) {
+          output.innerHTML = '<div class="bad">n trebuie să fie mai mare decât 1.</div>';
+          return;
+        }
+
+        if (!Number.isInteger(maxPairs) || maxPairs <= 0) {
+          output.innerHTML = '<div class="bad">Numărul de perechi trebuie să fie un întreg pozitiv.</div>';
+          return;
+        }
+
+        const f = buildFunction(fxText);
+
+        const values = [x0];
+        const rows = [];
+        let foundFactor = null;
+
+        for (let i = 1; i <= 2 * maxPairs; i++) {
+          values[i] = f(values[i - 1], n);
+        }
+
+        for (let i = 1; i <= maxPairs; i++) {
+          const oddIndex = 2 * i - 1;
+          const evenIndex = 2 * i;
+
+          const xOdd = values[oddIndex];
+          const xEven = values[evenIndex];
+          const compareIndex = i;
+
+          const d = gcd(xEven - values[compareIndex], n);
+
+          rows.push({
+            oddIndex,
+            evenIndex,
+            xOdd,
+            xEven,
+            compareIndex,
+            compareValue: values[compareIndex],
+            d
+          });
+
+          if (d > 1n && d < n) {
+            foundFactor = d;
+            break;
+          }
+        }
+
+        let html = `
+          <h2 class="section-title">Soluție — Metoda ρ a lui Pollard</h2>
+          <div class="inline-row">
+            <span class="label-text">n =</span> ${renderCell(n.toString())}
+            <span class="label-text">f(x) =</span> ${renderCell(fxText, 'long')}
+            <span class="label-text">x₀ =</span> ${renderCell(x0.toString())}
+          </div>
+
+          <div class="sub-title">Iterații (rezultate mod n)</div>
+          <div class="pollard-table">
+        `;
+
+        rows.forEach(row => {
+          html += `
+            <div class="pollard-row">
+              <div class="pollard-label">x<sub>${row.oddIndex}</sub></div>
+              <div class="pollard-value">${row.xOdd}</div>
+
+              <div class="pollard-label">x<sub>${row.evenIndex}</sub></div>
+              <div class="pollard-value">${row.xEven}</div>
+
+              <div class="pollard-gcd">(|x<sub>${row.evenIndex}</sub> - x<sub>${row.compareIndex}</sub>|, n)</div>
+              <div class="pollard-value">${row.d}</div>
+            </div>
+          `;
+        });
+
+        html += `</div>`;
+
+        if (foundFactor) {
+          const otherFactor = n / foundFactor;
+          const a = foundFactor < otherFactor ? foundFactor : otherFactor;
+          const b = foundFactor < otherFactor ? otherFactor : foundFactor;
+
+          html += `
+            <div class="footer-result">
+              Concluzie: Cei doi factori obținuți ai lui n sunt ${a} și ${b}.
+            </div>
+          `;
+        } else {
+          html += `
+            <div class="footer-result compus">
+              Nu s-a găsit un factor netrivial în numărul de pași ales. Mărește numărul de perechi sau schimbă funcția f(x).
+            </div>
+          `;
+        }
+
+        output.innerHTML = html;
+
+      } catch (e) {
+        output.innerHTML = `<div class="bad">Eroare: ${e.message}</div>`;
+      }
+      
+    }
+
+   function switchMethod() {
+  const method = document.getElementById('methodSelect').value;
+  const millerPanel = document.getElementById('millerPanel');
+  const pollardPanel = document.getElementById('pollardPanel');
+  const fermatPanel = document.getElementById('fermatPanel');
+  const desc = document.getElementById('methodDescription');
+  const output = document.getElementById('output');
+
+  millerPanel.classList.add('hidden');
+  pollardPanel.classList.add('hidden');
+  fermatPanel.classList.add('hidden');
+
+  if (method === 'miller') {
+    millerPanel.classList.remove('hidden');
+    desc.textContent = 'Calculator activ: Testul Miller–Rabin';
+
+    output.innerHTML = `
+      <div style="border: 1px solid #dbe3ef; border-radius: 18px; padding: 24px; background: #ffffff; line-height: 1.8;">
+        <h3 style="margin: 0 0 16px; color: #1e40af; font-size: 22px;">
+          Instrucțiuni pentru Testul Miller–Rabin
+        </h3>
+        <div>- Introdu valoarea lui <strong>n</strong>.</div>
+        <div>- În câmpul <strong>Baze</strong>, introdu valori separate prin virgulă.</div>
+        <div>- Exemple: <strong>2,3,5</strong> sau <strong>2,3,5,7,11</strong>.</div>
+        <div>- Fiecare bază reprezintă un număr folosit în test.</div>
+        <div>- După completare, apasă pe <strong>Rezolvă exercițiul</strong>.</div>
+      </div>
+    `;
+  }
+  else if (method === 'pollard') {
+    pollardPanel.classList.remove('hidden');
+    desc.textContent = 'Calculator activ: Metoda ρ a lui Pollard';
+
+    output.innerHTML = `
+      <div style="margin-bottom:16px; padding:12px 16px; border-radius:12px; background:#fff7ed; border:1px solid #fed7aa; color:#9a3412; font-size:14px;">
+        ⚠️ Acest calculator este experimental. Rezultatele pot varia în funcție de complexitatea problemei și de funcția f(x) aleasă.
+      </div>
+
+      <div style="border: 1px solid #dbe3ef; border-radius: 18px; padding: 24px; background: #ffffff; line-height: 1.8;">
+        <h3 style="margin: 0 0 16px; color: #1e40af; font-size: 22px;">
+          Instrucțiuni de completare pentru metoda ρ a lui Pollard
+        </h3>
+        <div>- Completează valoarea lui <strong>n</strong>.</div>
+        <div>- Completează valoarea inițială <strong>x₀</strong>.</div>
+        <div>- Pentru <strong>f(x)</strong>, scrie formula explicit: <strong>x*x+1</strong>, <strong>x*x*x+4</strong>, <strong>2*x+5</strong>.</div>
+        <div>- Folosește semnele <strong>+</strong>, <strong>-</strong>, <strong>*</strong>, <strong>/</strong>.</div>
+        <div>- După completare, apasă pe <strong>Rezolvă prin Pollard</strong>.</div>
+      </div>
+    `;
+  }
+  else {
+    fermatPanel.classList.remove('hidden');
+    desc.textContent = 'Calculator activ: Metoda lui Fermat';
+
+    output.innerHTML = `
+      <div style="border: 1px solid #dbe3ef; border-radius: 18px; padding: 24px; background: #ffffff; line-height: 1.8;">
+        <h3 style="margin: 0 0 16px; color: #1e40af; font-size: 22px;">
+          Instrucțiuni pentru metoda lui Fermat
+        </h3>
+        <div>- Completează valoarea lui <strong>n</strong>.</div>
+        <div>- Completează numărul maxim de <strong>iterații</strong>.</div>
+        <div>- Programul calculează automat <strong>t₀ = [√n]</strong>.</div>
+        <div>- Apoi verifică succesiv valorile <strong>t² - n</strong> pentru <strong>t = t₀ + 1, t₀ + 2, ...</strong>.</div>
+        <div>- Când <strong>t² - n</strong> devine pătrat perfect, se determină automat cei doi factori.</div>
+        <div>- După completare, apasă pe <strong>Rezolvă prin Fermat</strong>.</div>
+      </div>
+    `;
+  }
+} 
+
+function sqrtFloorBigInt(n) {
+  if (n < 0n) throw new Error('Nu există radical pentru numere negative.');
+  if (n < 2n) return n;
+
+  let x0 = n;
+  let x1 = (x0 + n / x0) / 2n;
+
+  while (x1 < x0) {
+    x0 = x1;
+    x1 = (x0 + n / x0) / 2n;
+  }
+
+  return x0;
+}
+
+function isPerfectSquareBigInt(n) {
+  if (n < 0n) return { ok: false, root: 0n };
+  const r = sqrtFloorBigInt(n);
+  return { ok: r * r === n, root: r };
+}
+
+function solveFermat() {
+  const output = document.getElementById('output');
+
+  try {
+    const nText = document.getElementById('fermatNInput').value.trim();
+    const stepsText = document.getElementById('fermatStepsInput').value.trim();
+
+    if (!nText || !stepsText) {
+      output.innerHTML = '<div class="bad">Completează toate câmpurile pentru metoda lui Fermat.</div>';
+      return;
+    }
+
+    const n = BigInt(nText);
+    const maxSteps = Number(stepsText);
+
+    if (n <= 1n) {
+      output.innerHTML = '<div class="bad">n trebuie să fie mai mare decât 1.</div>';
+      return;
+    }
+
+    if (!Number.isInteger(maxSteps) || maxSteps <= 0) {
+      output.innerHTML = '<div class="bad">Numărul de iterații trebuie să fie un întreg pozitiv.</div>';
+      return;
+    }
+
+    const t0 = sqrtFloorBigInt(n);
+    const rows = [];
+    let found = false;
+    let foundT = null;
+    let foundS = null;
+
+    for (let k = 1; k <= maxSteps; k++) {
+      if (found) {
+        rows.push({
+          k,
+          value: 'x',
+          perfect: 'x'
+        });
+        continue;
+      }
+
+      const t = t0 + BigInt(k);
+      const diff = t * t - n;
+      const check = isPerfectSquareBigInt(diff);
+
+      rows.push({
+        k,
+        value: diff.toString(),
+        perfect: check.ok ? 'da' : 'nu'
+      });
+
+      if (check.ok) {
+        found = true;
+        foundT = t;
+        foundS = check.root;
+      }
+    }
+
+    let html = `
+      <h2 class="section-title">Soluție — Metoda lui Fermat</h2>
+
+      <div class="sub-title">Inițializare</div>
+      <div class="inline-row">
+        <span class="label-text">t₀ = [√n] =</span> ${renderCell(t0.toString())}
+      </div>
+
+      <div class="sub-title">Iterații</div>
+      <div class="fermat-table">
+    `;
+
+    rows.forEach(row => {
+      html += `
+        <div class="fermat-row">
+          <div class="fermat-label">t = t₀ + ${row.k}; t² − n =</div>
+          <div class="fermat-value">${row.value}</div>
+          <div class="fermat-label">pătrat perfect (da/nu)</div>
+          <div class="fermat-value">${row.perfect}</div>
+        </div>
+      `;
     });
 
-    solve();
+    html += `</div>`;
+
+    if (found) {
+      const a = foundT - foundS;
+      const b = foundT + foundS;
+      const f1 = a < b ? a : b;
+      const f2 = a < b ? b : a;
+
+      html += `
+        <div class="sub-title">Valori</div>
+        <div class="inline-row">
+          <span class="label-text">s =</span> ${renderCell(foundS.toString())}
+          <span class="label-text">t =</span> ${renderCell(foundT.toString())}
+        </div>
+
+        <div class="footer-result">
+          Concluzie: Cei doi factori obținuți ai lui n sunt ${f1} și ${f2}.
+        </div>
+      `;
+    } else {
+      html += `
+        <div class="footer-result compus">
+          Nu s-a găsit un pătrat perfect în numărul de iterații ales. Mărește numărul de iterații.
+        </div>
+      `;
+    }
+
+    output.innerHTML = html;
+
+  } catch (e) {
+    output.innerHTML = '<div class="bad">Eroare la calculul prin metoda lui Fermat.</div>';
+  }
+}
+    document.getElementById('methodSelect').addEventListener('change', switchMethod);
+    document.getElementById('solveMillerBtn').addEventListener('click', solveMiller);
+    document.getElementById('solvePollardBtn').addEventListener('click', solvePollard);
+    document.getElementById('solveFermatBtn').addEventListener('click', solveFermat);
+    
+    switchMethod();
+
   </script>
-  <footer class="footer">
-  © 2026 Project by Muntean 
-</footer>
 </body>
 </html>
