@@ -719,128 +719,134 @@
     }
 
     function solvePollard() {
-      const output = document.getElementById('output');
+  const output = document.getElementById('output');
 
-      try {
-        const nText = document.getElementById('pollardNInput').value.trim();
-        const fxText = document.getElementById('pollardFunctionInput').value.trim();
-        const x0Text = document.getElementById('pollardX0Input').value.trim();
-        const stepsText = document.getElementById('pollardStepsInput').value.trim();
+  try {
+    const nText = document.getElementById('pollardNInput').value.trim();
+    const fxText = document.getElementById('pollardFunctionInput').value.trim();
+    const x0Text = document.getElementById('pollardX0Input').value.trim();
+    const stepsText = document.getElementById('pollardStepsInput').value.trim();
 
-        if (!nText || !fxText || !x0Text || !stepsText) {
-          output.innerHTML = '<div class="bad">Completează toate câmpurile pentru metoda lui Pollard.</div>';
-          return;
-        }
-
-        const n = BigInt(nText);
-        const x0 = BigInt(x0Text);
-        const maxPairs = Number(stepsText);
-
-        if (!nText || !fxText || !x0Text || !stepsText) {
-  output.innerHTML = '<div class="bad">Completează toate câmpurile pentru metoda lui Pollard.</div>';
-  return;
-}
-
-        if (n <= 1n) {
-          output.innerHTML = '<div class="bad">n trebuie să fie mai mare decât 1.</div>';
-          return;
-        }
-
-        if (!Number.isInteger(maxPairs) || maxPairs <= 0) {
-          output.innerHTML = '<div class="bad">Numărul de perechi trebuie să fie un întreg pozitiv.</div>';
-          return;
-        }
-
-        const f = buildFunction(fxText);
-
-        const values = [x0];
-        const rows = [];
-        let foundFactor = null;
-
-        for (let i = 1; i <= 2 * maxPairs; i++) {
-          values[i] = f(values[i - 1], n);
-        }
-
-        for (let i = 1; i <= maxPairs; i++) {
-          const oddIndex = 2 * i - 1;
-          const evenIndex = 2 * i;
-
-          const xOdd = values[oddIndex];
-          const xEven = values[evenIndex];
-          const compareIndex = i;
-
-          const d = gcd(xEven - values[compareIndex], n);
-
-          rows.push({
-            oddIndex,
-            evenIndex,
-            xOdd,
-            xEven,
-            compareIndex,
-            compareValue: values[compareIndex],
-            d
-          });
-
-          if (d > 1n && d < n) {
-            foundFactor = d;
-            break;
-          }
-        }
-
-        let html = `
-          <h2 class="section-title">Soluție — Metoda ρ a lui Pollard</h2>
-          <div class="inline-row">
-            <span class="label-text">n =</span> ${renderCell(n.toString())}
-            <span class="label-text">f(x) =</span> ${renderCell(fxText, 'long')}
-            <span class="label-text">x₀ =</span> ${renderCell(x0.toString())}
-          </div>
-
-          <div class="sub-title">Iterații (rezultate mod n)</div>
-          <div class="pollard-table">
-        `;
-
-        rows.forEach(row => {
-          html += `
-            <div class="pollard-row">
-              <div class="pollard-label">x<sub>${row.oddIndex}</sub></div>
-              <div class="pollard-value">${row.xOdd}</div>
-
-              <div class="pollard-label">x<sub>${row.evenIndex}</sub></div>
-              <div class="pollard-value">${row.xEven}</div>
-
-              <div class="pollard-gcd">(|x<sub>${row.evenIndex}</sub> - x<sub>${row.compareIndex}</sub>|, n)</div>
-              <div class="pollard-value">${row.d}</div>
-            </div>
-          `;
-        });
-
-        html += `</div>`;
-
-        if (foundFactor) {
-          const otherFactor = n / foundFactor;
-          const a = foundFactor < otherFactor ? foundFactor : otherFactor;
-          const b = foundFactor < otherFactor ? otherFactor : foundFactor;
-
-          html += `
-            <div class="footer-result">
-              Concluzie: Cei doi factori obținuți ai lui n sunt ${a} și ${b}.
-            </div>
-          `;
-        } else {
-          html += `
-            <div class="footer-result compus">
-              Nu s-a găsit un factor netrivial în numărul de pași ales. Mărește numărul de perechi sau schimbă funcția f(x).
-            </div>
-          `;
-        }
-
-        output.innerHTML = html;
-
-      } catch (e) {
-        output.innerHTML = `<div class="bad">Eroare: ${e.message}</div>`;
-      }
-      
+    if (!nText || !fxText || !x0Text || !stepsText) {
+      output.innerHTML = '<div class="bad">Completează toate câmpurile pentru metoda lui Pollard.</div>';
+      return;
     }
+
+    const n = BigInt(nText);
+    const x0 = BigInt(x0Text);
+    const maxPairs = Number(stepsText);
+
+    if (n <= 1n) {
+      output.innerHTML = '<div class="bad">n trebuie să fie mai mare decât 1.</div>';
+      return;
+    }
+
+    if (!Number.isInteger(maxPairs) || maxPairs <= 0) {
+      output.innerHTML = '<div class="bad">Numărul de perechi trebuie să fie un întreg pozitiv.</div>';
+      return;
+    }
+
+    const f = buildFunction(fxText);
+
+    const values = [x0];
+    const rows = [];
+    let foundFactor = null;
+
+    for (let i = 1; i <= 2 * maxPairs; i++) {
+      values[i] = f(values[i - 1], n);
+    }
+
+    let stopAfterFound = false;
+
+    for (let i = 1; i <= maxPairs; i++) {
+      const oddIndex = 2 * i - 1;
+      const evenIndex = 2 * i;
+      const compareIndex = i;
+
+      if (stopAfterFound) {
+        rows.push({
+          oddIndex,
+          evenIndex,
+          xOdd: 'x',
+          xEven: 'x',
+          compareIndex,
+          d: 'x'
+        });
+        continue;
+      }
+
+      const xOdd = values[oddIndex];
+      const xEven = values[evenIndex];
+      const d = gcd(xEven - values[compareIndex], n);
+
+      rows.push({
+        oddIndex,
+        evenIndex,
+        xOdd: xOdd.toString(),
+        xEven: xEven.toString(),
+        compareIndex,
+        d: d.toString()
+      });
+
+      if (d > 1n && d < n && !foundFactor) {
+        foundFactor = d;
+        stopAfterFound = true;
+      }
+    }
+
+    let html = `
+      <h2 class="section-title">Soluție — Metoda ρ a lui Pollard</h2>
+      <div class="inline-row">
+        <span class="label-text">n =</span> ${renderCell(n.toString())}
+        <span class="label-text">f(x) =</span> ${renderCell(fxText, 'long')}
+        <span class="label-text">x₀ =</span> ${renderCell(x0.toString())}
+      </div>
+
+      <div class="sub-title">Iterații (rezultate mod n)</div>
+      <div class="pollard-table">
+    `;
+
+    rows.forEach(row => {
+      html += `
+        <div class="pollard-row">
+          <div class="pollard-label">x<sub>${row.oddIndex}</sub></div>
+          <div class="pollard-value">${row.xOdd}</div>
+
+          <div class="pollard-label">x<sub>${row.evenIndex}</sub></div>
+          <div class="pollard-value">${row.xEven}</div>
+
+          <div class="pollard-gcd">(|x<sub>${row.evenIndex}</sub> - x<sub>${row.compareIndex}</sub>|, n)</div>
+          <div class="pollard-value">${row.d}</div>
+        </div>
+      `;
+    });
+
+    html += `</div>`;
+
+    if (foundFactor) {
+      const otherFactor = n / foundFactor;
+      const a = foundFactor < otherFactor ? foundFactor : otherFactor;
+      const b = foundFactor < otherFactor ? otherFactor : foundFactor;
+
+      html += `
+        <div class="footer-result">
+          Concluzie: Cei doi factori obținuți ai lui n sunt ${a} și ${b}.
+        </div>
+      `;
+    } else {
+      html += `
+        <div class="footer-result compus">
+          Nu s-a găsit un factor netrivial în numărul de perechi ales.
+        </div>
+      `;
+    }
+
+    output.innerHTML = html;
+
+  } catch (e) {
+    output.innerHTML = `<div class="bad">Eroare: ${e.message}</div>`;
+  }
+}
 
    function switchMethod() {
   const method = document.getElementById('methodSelect').value;
