@@ -89,13 +89,20 @@
       margin-bottom: 8px;
     }
 
-    input, select {
+    input, select, textarea {
       width: 100%;
       padding: 12px 14px;
       border-radius: 12px;
       border: 1px solid var(--line);
       font-size: 16px;
       background: #fff;
+    }
+
+    textarea {
+      min-height: 180px;
+      resize: vertical;
+      font-family: inherit;
+      line-height: 1.5;
     }
 
     .btn-row {
@@ -336,12 +343,105 @@
     padding: 12px;
   }
 }
+
+.rsa-meta-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.rsa-meta-card {
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 14px;
+  background: #f8fafc;
+}
+
+.rsa-meta-card strong {
+  display: block;
+  margin-bottom: 8px;
+  color: #1e3a8a;
+}
+
+.rsa-table {
+  display: grid;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.rsa-row {
+  display: grid;
+  grid-template-columns: 70px 140px 130px 130px 140px 130px 140px;
+  gap: 10px;
+  align-items: stretch;
+  padding: 10px 0;
+  border-bottom: 1px solid #eef2f7;
+}
+
+.rsa-row:last-child {
+  border-bottom: 0;
+}
+
+.rsa-header {
+  font-weight: 700;
+  color: #1e3a8a;
+}
+
+.rsa-value {
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--line);
+  background: #f8fafc;
+  min-height: 42px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.rsa-text {
+  font-family: "Courier New", Courier, monospace;
+  letter-spacing: 0.08em;
+}
+
+.signature-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.signature-card {
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 14px;
+  background: #f8fafc;
+}
+
+.signature-card strong {
+  display: block;
+  margin-bottom: 8px;
+  color: #1e3a8a;
+}
+
+@media (max-width: 1100px) {
+  .rsa-row {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    background: #fafcff;
+    border: 1px solid #e5edf7;
+    border-radius: 12px;
+    padding: 12px;
+  }
+}
   </style>
 </head>
 <body>
   <div class="container">
     <div class="header">
-      <h1>Calculatoare de primalitate și factorizare</h1>
+      <h1>Calculatoare de primalitate, factorizare și RSA</h1>
       <p>
         Alege metoda dorită din bara de control și completează datele de intrare.
       </p>
@@ -355,6 +455,8 @@
             <option value="miller">Testul Miller–Rabin</option>
             <option value="pollard">Metoda ρ a lui Pollard</option>
             <option value="fermat">Metoda lui Fermat</option>
+            <option value="rsa">Cifrare și descifrare RSA</option>
+            <option value="signature">Semnătură digitală RSA și ToyHash</option>
           </select>
         </div>
       </div>
@@ -429,6 +531,101 @@
   </div>
 </div>
 
+    <!-- RSA -->
+    <div class="panel hidden" id="rsaPanel">
+      <div class="form-grid">
+        <div>
+          <label for="rsaTextInput">Text clar</label>
+          <input id="rsaTextInput" type="text" />
+        </div>
+
+        <div>
+          <label for="rsaKInput">Blocuri text clar k</label>
+          <input id="rsaKInput" type="number" min="1" step="1" />
+        </div>
+
+        <div>
+          <label for="rsaLInput">Blocuri text cifrat l</label>
+          <input id="rsaLInput" type="number" min="1" step="1" />
+        </div>
+
+        <div>
+          <label for="rsaPInput">p</label>
+          <input id="rsaPInput" type="number" min="2" step="1" placeholder="opțional" />
+        </div>
+
+        <div>
+          <label for="rsaQInput">q</label>
+          <input id="rsaQInput" type="number" min="2" step="1" placeholder="opțional" />
+        </div>
+
+        <div>
+          <label for="rsaEInput">Exponent public e</label>
+          <input id="rsaEInput" type="number" min="2" step="1" placeholder="opțional" />
+        </div>
+      </div>
+
+      <div class="form-grid" style="margin-top: 16px;">
+        <div>
+          <label for="rsaDirectNInput">n din cheia publică</label>
+          <input id="rsaDirectNInput" type="number" min="2" step="1" placeholder="opțional" />
+        </div>
+
+        <div>
+          <label for="rsaDirectEInput">e din cheia publică</label>
+          <input id="rsaDirectEInput" type="number" min="2" step="1" placeholder="opțional" />
+        </div>
+
+        <div>
+          <label for="rsaDirectDInput">d din cheia privată</label>
+          <input id="rsaDirectDInput" type="number" min="1" step="1" placeholder="opțional dacă vrei să îl introduci direct" />
+        </div>
+      </div>
+
+      <div class="btn-row">
+        <button class="btn-primary" id="solveRsaBtn">Rezolvă RSA</button>
+      </div>
+    </div>
+
+    <!-- Signature -->
+    <div class="panel hidden" id="signaturePanel">
+      <div class="form-grid">
+        <div>
+          <label for="signatureMessageInput">Mesaj</label>
+          <input id="signatureMessageInput" type="text" />
+        </div>
+
+        <div>
+          <label for="signatureSecondMessageInput">Mesaj 2 / mesaj interceptat</label>
+          <input id="signatureSecondMessageInput" type="text" placeholder="opțional" />
+        </div>
+
+        <div>
+          <label for="signatureNInput">n</label>
+          <input id="signatureNInput" type="number" min="2" step="1" />
+        </div>
+
+        <div>
+          <label for="signatureEInput">e</label>
+          <input id="signatureEInput" type="number" min="2" step="1" />
+        </div>
+
+        <div>
+          <label for="signatureDInput">d</label>
+          <input id="signatureDInput" type="number" min="1" step="1" placeholder="opțional dacă semnătura e deja dată" />
+        </div>
+
+        <div>
+          <label for="signatureValueInput">Semnătură s</label>
+          <input id="signatureValueInput" type="number" min="0" step="1" placeholder="opțional" />
+        </div>
+      </div>
+
+      <div class="btn-row">
+        <button class="btn-primary" id="solveSignatureBtn">Rezolvă semnătura</button>
+      </div>
+    </div>
+
     <div class="panel">
       <div class="solution-box" id="output">
         Selectează metoda și apasă pe butonul de rezolvare.
@@ -501,6 +698,965 @@
 
     function renderCell(value, extraClass = '') {
       return `<span class="cell ${extraClass}">${value}</span><span class="ok">✓</span>`;
+    }
+
+    const RSA_ALPHABET_SIZE = 27n;
+
+    function extendedGcd(a, b) {
+      if (b === 0n) {
+        return { gcd: a, x: 1n, y: 0n };
+      }
+
+      const next = extendedGcd(b, a % b);
+      return {
+        gcd: next.gcd,
+        x: next.y,
+        y: next.x - (a / b) * next.y
+      };
+    }
+
+    function modInverse(a, mod) {
+      const result = extendedGcd(a, mod);
+      if (result.gcd !== 1n) {
+        throw new Error('Exponentul e nu este inversabil modulo φ(n).');
+      }
+
+      return ((result.x % mod) + mod) % mod;
+    }
+
+    function isPrimeBigInt(n) {
+      if (n < 2n) return false;
+      if (n === 2n) return true;
+      if (n % 2n === 0n) return false;
+
+      for (let d = 3n; d * d <= n; d += 2n) {
+        if (n % d === 0n) return false;
+      }
+
+      return true;
+    }
+
+    function nextPrimeBigInt(start) {
+      let candidate = start <= 2n ? 2n : start;
+      if (candidate > 2n && candidate % 2n === 0n) {
+        candidate += 1n;
+      }
+
+      while (!isPrimeBigInt(candidate)) {
+        candidate += candidate === 2n ? 1n : 2n;
+      }
+
+      return candidate;
+    }
+
+    function chooseAutomaticE(phi) {
+      let e = 3n;
+      while (e < phi) {
+        if (gcd(e, phi) === 1n) {
+          return e;
+        }
+        e += 2n;
+      }
+
+      throw new Error('Nu s-a putut alege automat un exponent public e valid.');
+    }
+
+    function generateRsaParameters(k, l) {
+      const lowerBound = RSA_ALPHABET_SIZE ** BigInt(k);
+      const upperBound = RSA_ALPHABET_SIZE ** BigInt(l);
+
+      for (let p = 2n; p * p < upperBound; p = nextPrimeBigInt(p + 1n)) {
+        const minQ = nextPrimeBigInt((lowerBound / p) + 1n);
+        for (let q = minQ; p * q < upperBound; q = nextPrimeBigInt(q + 1n)) {
+          if (q === p) continue;
+
+          const n = p * q;
+          if (n <= lowerBound || n >= upperBound) continue;
+
+          const phi = (p - 1n) * (q - 1n);
+          const e = chooseAutomaticE(phi);
+
+          return { p, q, e, n, phi, autoGenerated: true };
+        }
+      }
+
+      throw new Error('Nu am găsit automat o cheie RSA validă pentru valorile k și l alese.');
+    }
+
+    function escapeHtml(text) {
+      return text
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
+
+    function stripDiacritics(text) {
+      return text
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .replace(/Ł/g, 'L')
+        .replace(/ł/g, 'l');
+    }
+
+    function normalizeRsaText(text) {
+      return stripDiacritics(
+        text
+        .replace(/[ȘŞ]/g, 'S')
+        .replace(/[șş]/g, 's')
+        .replace(/[ȚŢ]/g, 'T')
+        .replace(/[țţ]/g, 't')
+      )
+        .toUpperCase()
+        .replace(/\r?\n/g, ' ')
+        .trim();
+    }
+
+    function splitIntoBlocks(text, blockSize) {
+      const blocks = [];
+      for (let i = 0; i < text.length; i += blockSize) {
+        blocks.push(text.slice(i, i + blockSize));
+      }
+      return blocks;
+    }
+
+    function rsaCharToValue(char) {
+      if (char === ' ') return 0n;
+      const code = char.charCodeAt(0);
+      if (code >= 65 && code <= 90) {
+        return BigInt(code - 64);
+      }
+      throw new Error(`Caracterul "${char}" nu este acceptat în alfabetul RSA de 27 simboluri.`);
+    }
+
+    function rsaValueToChar(value) {
+      if (value === 0n) return ' ';
+      const numeric = Number(value);
+      if (numeric >= 1 && numeric <= 26) {
+        return String.fromCharCode(64 + numeric);
+      }
+      throw new Error(`Valoarea ${value} nu poate fi transformată într-un simbol RSA.`);
+    }
+
+    function rsaBlockToNumber(block) {
+      let value = 0n;
+      for (const char of block) {
+        value = value * RSA_ALPHABET_SIZE + rsaCharToValue(char);
+      }
+      return value;
+    }
+
+    function rsaNumberToBlock(value, blockLength) {
+      if (blockLength <= 0) return '';
+
+      let current = value;
+      const chars = Array(blockLength).fill(' ');
+
+      for (let i = blockLength - 1; i >= 0; i--) {
+        const digit = current % RSA_ALPHABET_SIZE;
+        chars[i] = rsaValueToChar(digit);
+        current /= RSA_ALPHABET_SIZE;
+      }
+
+      if (current > 0n) {
+        throw new Error(`Numărul ${value} nu încape într-un bloc de lungime ${blockLength}.`);
+      }
+
+      return chars.join('');
+    }
+
+    function renderRsaValue(value, extraClass = '') {
+      return `<div class="rsa-value ${extraClass}">${escapeHtml(value)}</div>`;
+    }
+
+    function normalizeToyHashText(text) {
+      return stripDiacritics(
+        text
+        .replace(/[ȘŞ]/g, 'S')
+        .replace(/[șş]/g, 's')
+        .replace(/[ȚŢ]/g, 'T')
+        .replace(/[țţ]/g, 't')
+      )
+        .toUpperCase()
+        .replace(/[^A-Z\s]/g, ' ')
+        .replace(/\s+/g, ' ')
+        .trim();
+    }
+
+    function analyzeToyHash(text) {
+      const normalized = normalizeToyHashText(text);
+      const words = normalized ? normalized.split(' ').filter(Boolean) : [];
+      const vowelsSet = new Set(['A', 'E', 'I', 'O', 'U']);
+      let vowels = 0;
+      let consonants = 0;
+
+      for (const char of normalized.replace(/\s/g, '')) {
+        if (vowelsSet.has(char)) {
+          vowels++;
+        } else {
+          consonants++;
+        }
+      }
+
+      const hashBase = vowels * vowels + vowels * consonants + words.length;
+      const hash = ((hashBase % 19) + 19) % 19;
+
+      return {
+        normalized,
+        vowels,
+        consonants,
+        words: words.length,
+        hashBase,
+        hash
+      };
+    }
+
+    function buildCollisionWord(vowelsCount, consonantCount) {
+      const vowels = ['A', 'E', 'I', 'O', 'U'];
+      const consonants = ['B', 'C', 'D', 'F', 'G', 'L', 'M', 'N', 'P', 'R', 'S', 'T', 'V', 'Z'];
+      const chars = [];
+      let v = vowelsCount;
+      let c = consonantCount;
+
+      while (v > 0 || c > 0) {
+        if (c > 0) {
+          chars.push(consonants[(chars.length + c + v) % consonants.length]);
+          c--;
+        }
+        if (v > 0) {
+          chars.push(vowels[(chars.length + v + c) % vowels.length]);
+          v--;
+        }
+      }
+
+      if (chars.length === 0) {
+        chars.push('A');
+      }
+
+      return chars.join('');
+    }
+
+    function generateToyHashCollision(text) {
+      const analysis = analyzeToyHash(text);
+      const wordsCount = Math.max(analysis.words, 1);
+      let remainingVowels = analysis.vowels;
+      let remainingConsonants = analysis.consonants;
+      const words = [];
+
+      for (let i = 0; i < wordsCount; i++) {
+        const wordsLeft = wordsCount - i;
+        const vShare = Math.max(0, Math.floor(remainingVowels / wordsLeft));
+        const cShare = Math.max(0, Math.floor(remainingConsonants / wordsLeft));
+        const useV = i === wordsCount - 1 ? remainingVowels : vShare;
+        const useC = i === wordsCount - 1 ? remainingConsonants : cShare;
+
+        words.push(buildCollisionWord(useV, useC));
+        remainingVowels -= useV;
+        remainingConsonants -= useC;
+      }
+
+      const candidate = words.join(' ').trim();
+      if (!candidate || candidate === analysis.normalized) {
+        return `${candidate}A`.trim();
+      }
+
+      return candidate;
+    }
+
+    function solveSignature() {
+      const output = document.getElementById('output');
+
+      try {
+        const messageText = document.getElementById('signatureMessageInput').value.trim();
+        const secondMessageText = document.getElementById('signatureSecondMessageInput').value.trim();
+        const nText = document.getElementById('signatureNInput').value.trim();
+        const eText = document.getElementById('signatureEInput').value.trim();
+        const dText = document.getElementById('signatureDInput').value.trim();
+        const signatureValueText = document.getElementById('signatureValueInput').value.trim();
+
+        if (!messageText || !nText || !eText) {
+          output.innerHTML = '<div class="bad">Completează mesajul, n și e pentru semnătura digitală.</div>';
+          return;
+        }
+
+        if (!dText && !signatureValueText) {
+          output.innerHTML = '<div class="bad">Completează fie d pentru generarea semnăturii, fie o semnătură s deja dată.</div>';
+          return;
+        }
+
+        const n = BigInt(nText);
+        const e = BigInt(eText);
+        const d = dText ? BigInt(dText) : null;
+        let signatureValue = signatureValueText ? BigInt(signatureValueText) : null;
+        const analysis = analyzeToyHash(messageText);
+
+        if (!analysis.normalized) {
+          output.innerHTML = '<div class="bad">Mesajul nu conține litere valide pentru calculul ToyHash.</div>';
+          return;
+        }
+
+        if (n <= 1n || e <= 1n) {
+          output.innerHTML = '<div class="bad">Valorile n și e trebuie să fie valide.</div>';
+          return;
+        }
+
+        if (d !== null && d <= 0n) {
+          output.innerHTML = '<div class="bad">Valoarea d trebuie să fie pozitivă.</div>';
+          return;
+        }
+
+        if (signatureValue === null && d !== null) {
+          signatureValue = modPow(BigInt(analysis.hash), d, n);
+        }
+
+        const verifiedHash = modPow(signatureValue, e, n);
+        const accepted = verifiedHash === BigInt(analysis.hash);
+        const collisionCandidate = generateToyHashCollision(messageText);
+        const collisionAnalysis = analyzeToyHash(collisionCandidate);
+        const secondAnalysis = secondMessageText ? analyzeToyHash(secondMessageText) : null;
+        const secondAccepted = secondAnalysis
+          ? modPow(signatureValue, e, n) === BigInt(secondAnalysis.hash)
+          : null;
+
+        let html = `
+          <h2 class="section-title">Soluție — Semnătură digitală RSA și ToyHash</h2>
+
+          <div class="signature-grid">
+            <div class="signature-card">
+              <strong>Chei și date</strong>
+              <div>n = <b>${n}</b></div>
+              <div>e = <b>${e}</b></div>
+              <div>d = <b>${d !== null ? d : 'necompletat'}</b></div>
+              <div>Semnătură s = <b>${signatureValue}</b></div>
+            </div>
+            <div class="signature-card">
+              <strong>Mesaj principal</strong>
+              <div>Mesaj: <b>${escapeHtml(analysis.normalized)}</b></div>
+              <div>v = <b>${analysis.vowels}</b>, c = <b>${analysis.consonants}</b>, w = <b>${analysis.words}</b></div>
+              <div>h(m) = v² + v·c + w = <b>${analysis.hashBase}</b> mod 19 = <b>${analysis.hash}</b></div>
+            </div>
+            <div class="signature-card">
+              <strong>Verificare</strong>
+              <div>m' = s<sup>e</sup> mod n = <b>${verifiedHash}</b></div>
+              <div>h(m) = <b>${analysis.hash}</b></div>
+              <div>Verdict: <b>${accepted ? 'semnătura este acceptată' : 'semnătura este respinsă'}</b></div>
+            </div>
+          </div>
+        `;
+
+        if (d !== null) {
+          html += `
+            <div class="sub-title">Generarea semnăturii</div>
+            <div class="inline-row">
+              <span class="label-text">s = h(m)<sup>d</sup> mod n =</span> ${renderCell(signatureValue.toString(), 'long')}
+            </div>
+          `;
+        }
+
+        html += `
+          <div class="sub-title">Coliziune ToyHash generată automat</div>
+          <div class="signature-grid">
+            <div class="signature-card">
+              <strong>Mesaj alternativ</strong>
+              <div><b>${escapeHtml(collisionAnalysis.normalized)}</b></div>
+              <div>v = <b>${collisionAnalysis.vowels}</b>, c = <b>${collisionAnalysis.consonants}</b>, w = <b>${collisionAnalysis.words}</b></div>
+              <div>h(m₂) = <b>${collisionAnalysis.hash}</b></div>
+            </div>
+            <div class="signature-card">
+              <strong>Comparație</strong>
+              <div>h(m) = <b>${analysis.hash}</b></div>
+              <div>h(m₂) = <b>${collisionAnalysis.hash}</b></div>
+              <div>${analysis.hash === collisionAnalysis.hash ? 'Este o coliziune ToyHash validă.' : 'Nu s-a obținut o coliziune.'}</div>
+            </div>
+          </div>
+        `;
+
+        if (secondAnalysis) {
+          html += `
+            <div class="sub-title">Mesaj 2 / mesaj interceptat</div>
+            <div class="signature-grid">
+              <div class="signature-card">
+                <strong>Analiză mesaj 2</strong>
+                <div>Mesaj: <b>${escapeHtml(secondAnalysis.normalized)}</b></div>
+                <div>v = <b>${secondAnalysis.vowels}</b>, c = <b>${secondAnalysis.consonants}</b>, w = <b>${secondAnalysis.words}</b></div>
+                <div>h(m₂) = <b>${secondAnalysis.hashBase}</b> mod 19 = <b>${secondAnalysis.hash}</b></div>
+              </div>
+              <div class="signature-card">
+                <strong>Verificare cu aceeași semnătură</strong>
+                <div>m' = s<sup>e</sup> mod n = <b>${verifiedHash}</b></div>
+                <div>h(m₂) = <b>${secondAnalysis.hash}</b></div>
+                <div>Verdict: <b>${secondAccepted ? 'mesajul 2 ar fi acceptat' : 'mesajul 2 ar fi respins'}</b></div>
+              </div>
+            </div>
+          `;
+        }
+
+        html += `
+          <div class="footer-result ${accepted ? '' : 'compus'}">
+            Concluzie: această secțiune rezolvă problemele de Seminar 4 legate de ToyHash, generarea semnăturii RSA, verificarea semnăturii și coliziunile de tip mesaj interceptat.
+          </div>
+        `;
+
+        output.innerHTML = html;
+      } catch (e) {
+        output.innerHTML = `<div class="bad">Eroare la secțiunea de semnătură digitală: ${e.message}</div>`;
+      }
+    }
+
+    function factorSemiprime(n) {
+      if (n <= 1n) {
+        throw new Error('n trebuie să fie mai mare decât 1 pentru factorizare.');
+      }
+
+      if (n % 2n === 0n) {
+        return { p: 2n, q: n / 2n };
+      }
+
+      for (let d = 3n; d * d <= n; d += 2n) {
+        if (n % d === 0n) {
+          return { p: d, q: n / d };
+        }
+      }
+
+      throw new Error('Nu s-a putut factoriza n automat pe baza datelor din enunț.');
+    }
+
+    function extractQuotedMessages(text) {
+      const matches = [...text.matchAll(/["“„](.*?)["”]/g)];
+      return matches.map(match => match[1].trim()).filter(Boolean);
+    }
+
+    function extractNumberByRegex(text, regex) {
+      const match = text.match(regex);
+      return match ? BigInt(match[1]) : null;
+    }
+
+    function extractSmallNumberByRegex(text, regex) {
+      const match = text.match(regex);
+      return match ? Number(match[1]) : null;
+    }
+
+    function parseSeminar4Statement(text) {
+      const normalized = stripDiacritics(text).toLowerCase();
+      const quotedMessages = extractQuotedMessages(text);
+      const directKeyMatch = text.match(/\(\s*n\s*,\s*e\s*\)\s*=\s*\(\s*(\d+)\s*,\s*(\d+)\s*\)/i);
+      const plaintextMatch = text.match(/text(?:ul)?\s+clar[^"“„]*["“„](.*?)["”]/i);
+      const ciphertextMatch = text.match(/text(?:ul)?\s+cifrat[^"“„]*["“„](.*?)["”]/i);
+
+      return {
+        kind: normalized.includes('toyhash') || normalized.includes('semnatur') ? 'signature' : 'rsa',
+        raw: text,
+        normalized,
+        k: extractSmallNumberByRegex(text, /\bk\s*=\s*(\d+)/i),
+        l: extractSmallNumberByRegex(text, /\bl\s*=\s*(\d+)/i),
+        p: extractNumberByRegex(text, /\bp\s*=\s*(\d+)/i),
+        q: extractNumberByRegex(text, /\bq\s*=\s*(\d+)/i),
+        n: directKeyMatch ? BigInt(directKeyMatch[1]) : extractNumberByRegex(text, /\bn\s*=\s*(\d+)/i),
+        e: directKeyMatch ? BigInt(directKeyMatch[2]) : extractNumberByRegex(text, /\be\s*=\s*(\d+)/i),
+        d: extractNumberByRegex(text, /\bd\s*=\s*(\d+)/i),
+        signatureValue: extractNumberByRegex(text, /\bs\s*=\s*(\d+)/i),
+        quotedMessages,
+        plaintext: plaintextMatch ? plaintextMatch[1].trim() : null,
+        ciphertext: ciphertextMatch ? ciphertextMatch[1].trim() : null
+      };
+    }
+
+    function computeRsaBlocksFromPlaintext(text, k, l, n, e, d) {
+      const normalizedText = normalizeRsaText(text);
+      const plainBlocks = splitIntoBlocks(normalizedText, k);
+      const rows = plainBlocks.map((block, index) => {
+        const plainNumber = rsaBlockToNumber(block);
+        if (plainNumber >= n) {
+          throw new Error(`Blocul ${index + 1} produce valoarea ${plainNumber}, care trebuie să fie mai mică decât n.`);
+        }
+
+        const cipherNumber = modPow(plainNumber, e, n);
+        const cipherBlock = rsaNumberToBlock(cipherNumber, l);
+        const decryptedNumber = d !== null ? modPow(cipherNumber, d, n) : null;
+        const decryptedBlock = d !== null ? rsaNumberToBlock(decryptedNumber, block.length) : null;
+
+        return {
+          index: index + 1,
+          block,
+          plainNumber: plainNumber.toString(),
+          cipherNumber: cipherNumber.toString(),
+          cipherBlock,
+          decryptedNumber: decryptedNumber !== null ? decryptedNumber.toString() : '—',
+          decryptedBlock: decryptedBlock !== null ? decryptedBlock : '—'
+        };
+      });
+
+      return {
+        normalizedText,
+        plainBlocks,
+        rows,
+        cipherText: rows.map(row => row.cipherBlock).join(' '),
+        decryptedText: d !== null ? rows.map(row => row.decryptedBlock).join('') : '—'
+      };
+    }
+
+    function renderAutoRsaSolution(parsed) {
+      if (!parsed.k || !parsed.l) {
+        throw new Error('Enunțul RSA trebuie să conțină valorile k și l.');
+      }
+
+      let n = parsed.n;
+      let e = parsed.e;
+      let d = parsed.d ?? null;
+      let p = parsed.p ?? null;
+      let q = parsed.q ?? null;
+
+      if (!n && p && q) {
+        n = p * q;
+      }
+
+      if (!n) {
+        throw new Error('Nu am putut identifica valoarea lui n din enunț.');
+      }
+
+      if (!e) {
+        throw new Error('Nu am putut identifica valoarea lui e din enunț.');
+      }
+
+      if (!p || !q) {
+        const factors = factorSemiprime(n);
+        p = factors.p;
+        q = factors.q;
+      }
+
+      const phi = (p - 1n) * (q - 1n);
+      if (d === null) {
+        d = modInverse(e, phi);
+      }
+
+      const lowerBound = RSA_ALPHABET_SIZE ** BigInt(parsed.k);
+      const upperBound = RSA_ALPHABET_SIZE ** BigInt(parsed.l);
+      if (!(lowerBound < n && n < upperBound)) {
+        throw new Error(`Datele extrase nu respectă relația 27^k < n < 27^l. Am obținut n = ${n}.`);
+      }
+
+      const sourceText = parsed.plaintext || parsed.quotedMessages[0];
+      if (!sourceText) {
+        throw new Error('Nu am găsit textul dintre ghilimele în enunțul RSA.');
+      }
+
+      const data = computeRsaBlocksFromPlaintext(sourceText, parsed.k, parsed.l, n, e, d);
+
+      let html = `
+        <h2 class="section-title">Rezolvare automată — RSA</h2>
+        <div class="signature-grid">
+          <div class="signature-card">
+            <strong>Tip detectat</strong>
+            <div>Problema a fost recunoscută ca exercițiu de cifrare / descifrare RSA.</div>
+            <div>k = <b>${parsed.k}</b>, l = <b>${parsed.l}</b></div>
+          </div>
+          <div class="signature-card">
+            <strong>Chei extrase</strong>
+            <div>n = <b>${n}</b>, e = <b>${e}</b>, d = <b>${d}</b></div>
+            <div>p = <b>${p}</b>, q = <b>${q}</b></div>
+            <div>φ(n) = <b>${phi}</b></div>
+          </div>
+          <div class="signature-card">
+            <strong>Mesaj detectat</strong>
+            <div>Text clar: <b>${escapeHtml(data.normalizedText)}</b></div>
+            <div>Text cifrat rezultat: <b>${escapeHtml(data.cipherText)}</b></div>
+            <div>Text descifrat: <b>${escapeHtml(data.decryptedText)}</b></div>
+          </div>
+        </div>
+
+        <div class="sub-title">Blocuri și calcule</div>
+        <div class="rsa-table">
+          <div class="rsa-row rsa-header">
+            <div>Bloc</div>
+            <div>Text clar</div>
+            <div>m</div>
+            <div>c = m<sup>e</sup> mod n</div>
+            <div>Text cifrat</div>
+            <div>m' = c<sup>d</sup> mod n</div>
+            <div>Text descifrat</div>
+          </div>
+      `;
+
+      data.rows.forEach(row => {
+        html += `
+          <div class="rsa-row">
+            ${renderRsaValue(String(row.index))}
+            ${renderRsaValue(row.block, 'rsa-text')}
+            ${renderRsaValue(row.plainNumber)}
+            ${renderRsaValue(row.cipherNumber)}
+            ${renderRsaValue(row.cipherBlock, 'rsa-text')}
+            ${renderRsaValue(row.decryptedNumber)}
+            ${renderRsaValue(row.decryptedBlock, 'rsa-text')}
+          </div>
+        `;
+      });
+
+      html += `
+        </div>
+        <div class="footer-result">
+          Concluzie: programul a identificat automat tipul RSA și a folosit exclusiv datele din enunț pentru rezolvare.
+        </div>
+      `;
+
+      return html;
+    }
+
+    function renderAutoSignatureSolution(parsed) {
+      const message = parsed.quotedMessages[0];
+      const secondMessage = parsed.quotedMessages[1] || null;
+
+      if (!message) {
+        throw new Error('Nu am găsit mesajul dintre ghilimele pentru exercițiul de semnătură digitală.');
+      }
+
+      if (!parsed.n || !parsed.e) {
+        throw new Error('Enunțul trebuie să conțină cheia publică (n, e).');
+      }
+
+      if (!parsed.d && !parsed.signatureValue) {
+        throw new Error('Enunțul trebuie să conțină fie cheia privată d, fie semnătura s.');
+      }
+
+      const analysis = analyzeToyHash(message);
+      let signatureValue = parsed.signatureValue;
+      if (!signatureValue) {
+        signatureValue = modPow(BigInt(analysis.hash), parsed.d, parsed.n);
+      }
+
+      const verifiedHash = modPow(signatureValue, parsed.e, parsed.n);
+      const secondAnalysis = secondMessage ? analyzeToyHash(secondMessage) : null;
+      const collisionCandidate = generateToyHashCollision(message);
+      const collisionAnalysis = analyzeToyHash(collisionCandidate);
+
+      return `
+        <h2 class="section-title">Rezolvare automată — Semnătură digitală RSA</h2>
+        <div class="signature-grid">
+          <div class="signature-card">
+            <strong>Tip detectat</strong>
+            <div>Problema a fost recunoscută ca exercițiu de semnătură digitală / ToyHash.</div>
+            <div>n = <b>${parsed.n}</b>, e = <b>${parsed.e}</b>, d = <b>${parsed.d ?? 'neprecizat în enunț'}</b></div>
+            <div>Semnătura s = <b>${signatureValue}</b></div>
+          </div>
+          <div class="signature-card">
+            <strong>Mesaj principal</strong>
+            <div><b>${escapeHtml(analysis.normalized)}</b></div>
+            <div>v = <b>${analysis.vowels}</b>, c = <b>${analysis.consonants}</b>, w = <b>${analysis.words}</b></div>
+            <div>h(m) = <b>${analysis.hashBase}</b> mod 19 = <b>${analysis.hash}</b></div>
+          </div>
+          <div class="signature-card">
+            <strong>Verificare</strong>
+            <div>m' = s<sup>e</sup> mod n = <b>${verifiedHash}</b></div>
+            <div>Verdict: <b>${verifiedHash === BigInt(analysis.hash) ? 'semnătura este acceptată' : 'semnătura este respinsă'}</b></div>
+          </div>
+        </div>
+        ${secondAnalysis ? `
+          <div class="sub-title">Al doilea mesaj detectat</div>
+          <div class="signature-grid">
+            <div class="signature-card">
+              <strong>Mesaj 2</strong>
+              <div><b>${escapeHtml(secondAnalysis.normalized)}</b></div>
+              <div>h(m₂) = <b>${secondAnalysis.hashBase}</b> mod 19 = <b>${secondAnalysis.hash}</b></div>
+            </div>
+            <div class="signature-card">
+              <strong>Efect cu aceeași semnătură</strong>
+              <div>m' = <b>${verifiedHash}</b></div>
+              <div>Verdict: <b>${verifiedHash === BigInt(secondAnalysis.hash) ? 'mesajul 2 ar fi acceptat' : 'mesajul 2 ar fi respins'}</b></div>
+            </div>
+          </div>
+        ` : ''}
+        <div class="sub-title">Coliziune ToyHash automată</div>
+        <div class="signature-grid">
+          <div class="signature-card">
+            <strong>Mesaj alternativ</strong>
+            <div><b>${escapeHtml(collisionAnalysis.normalized)}</b></div>
+            <div>h(m₂) = <b>${collisionAnalysis.hash}</b></div>
+          </div>
+          <div class="signature-card">
+            <strong>Comparație</strong>
+            <div>h(m) = <b>${analysis.hash}</b></div>
+            <div>h(m₂) = <b>${collisionAnalysis.hash}</b></div>
+            <div>${analysis.hash === collisionAnalysis.hash ? 'Este o coliziune ToyHash validă.' : 'Nu s-a obținut o coliziune.'}</div>
+          </div>
+        </div>
+        <div class="footer-result">
+          Concluzie: programul a identificat automat problema de semnătură digitală și a folosit doar valorile extrase din enunț.
+        </div>
+      `;
+    }
+
+    function solveRsa() {
+      const output = document.getElementById('output');
+
+      try {
+        const textInput = document.getElementById('rsaTextInput').value;
+        const kText = document.getElementById('rsaKInput').value.trim();
+        const lText = document.getElementById('rsaLInput').value.trim();
+        const pText = document.getElementById('rsaPInput').value.trim();
+        const qText = document.getElementById('rsaQInput').value.trim();
+        const eText = document.getElementById('rsaEInput').value.trim();
+        const directNText = document.getElementById('rsaDirectNInput').value.trim();
+        const directEText = document.getElementById('rsaDirectEInput').value.trim();
+        const directDText = document.getElementById('rsaDirectDInput').value.trim();
+
+        if (!textInput.trim() || !kText || !lText) {
+          output.innerHTML = '<div class="bad">Completează textul clar și valorile k, l pentru secțiunea RSA.</div>';
+          return;
+        }
+
+        const text = normalizeRsaText(textInput);
+        const k = Number(kText);
+        const l = Number(lText);
+        const hasManualP = Boolean(pText);
+        const hasManualQ = Boolean(qText);
+        const hasManualE = Boolean(eText);
+        const hasDirectN = Boolean(directNText);
+        const hasDirectE = Boolean(directEText);
+        const hasDirectD = Boolean(directDText);
+
+        if (!text) {
+          output.innerHTML = '<div class="bad">Textul clar nu poate fi gol după normalizare.</div>';
+          return;
+        }
+
+        if (!Number.isInteger(k) || k <= 0 || !Number.isInteger(l) || l <= 0) {
+          output.innerHTML = '<div class="bad">Valorile k și l trebuie să fie numere întregi pozitive.</div>';
+          return;
+        }
+
+        const lowerBound = RSA_ALPHABET_SIZE ** BigInt(k);
+        const upperBound = RSA_ALPHABET_SIZE ** BigInt(l);
+        let p;
+        let q;
+        let e;
+        let d;
+        let n;
+        let phi;
+        let autoGeneratedPq = false;
+        let autoGeneratedE = false;
+        let usesDirectKeys = false;
+        let keySourceLabel = '';
+
+        if (!(hasDirectN || hasDirectE || hasDirectD) && hasManualP !== hasManualQ) {
+          output.innerHTML = '<div class="bad">Completează ambele valori p și q sau lasă-le pe amândouă goale pentru generare automată.</div>';
+          return;
+        }
+
+        if (hasDirectN || hasDirectE || hasDirectD) {
+          if (!(hasDirectN && hasDirectE)) {
+            output.innerHTML = '<div class="bad">Pentru modul cu cheie publică introdusă direct trebuie să completezi cel puțin n și e.</div>';
+            return;
+          }
+
+          n = BigInt(directNText);
+          e = BigInt(directEText);
+          d = hasDirectD ? BigInt(directDText) : null;
+          usesDirectKeys = true;
+          keySourceLabel = hasDirectD ? 'chei publică și privată introduse direct' : 'cheie publică introdusă direct';
+
+          if (n <= 1n) {
+            output.innerHTML = '<div class="bad">Valoarea n din cheia publică trebuie să fie mai mare decât 1.</div>';
+            return;
+          }
+
+          if (e <= 1n) {
+            output.innerHTML = '<div class="bad">Valoarea e introdusă direct trebuie să fie pozitivă și validă.</div>';
+            return;
+          }
+
+          if (d !== null && d <= 0n) {
+            output.innerHTML = '<div class="bad">Valoarea d introdusă direct trebuie să fie pozitivă și validă.</div>';
+            return;
+          }
+
+          try {
+            const factors = factorSemiprime(n);
+            p = factors.p;
+            q = factors.q;
+            phi = (p - 1n) * (q - 1n);
+          } catch (factorError) {
+            if (d === null) {
+              output.innerHTML = '<div class="bad">Nu am putut factoriza n pentru a calcula cheia de descifrare d. Completează d manual.</div>';
+              return;
+            }
+          }
+        }
+
+        if (!usesDirectKeys && hasManualP && hasManualQ) {
+          p = BigInt(pText);
+          q = BigInt(qText);
+
+          if (p <= 1n || q <= 1n) {
+            output.innerHTML = '<div class="bad">Valorile p și q trebuie să fie mai mari decât 1.</div>';
+            return;
+          }
+
+          if (!isPrimeBigInt(p) || !isPrimeBigInt(q)) {
+            output.innerHTML = '<div class="bad">Valorile p și q trebuie să fie numere prime.</div>';
+            return;
+          }
+
+          if (p === q) {
+            output.innerHTML = '<div class="bad">În RSA, p și q trebuie să fie diferite.</div>';
+            return;
+          }
+
+          n = p * q;
+          phi = (p - 1n) * (q - 1n);
+          keySourceLabel = hasManualE ? 'p, q și e introduse manual' : 'p și q introduse manual';
+        } else {
+          if (!usesDirectKeys) {
+            const generated = generateRsaParameters(k, l);
+            p = generated.p;
+            q = generated.q;
+            n = generated.n;
+            phi = generated.phi;
+            autoGeneratedPq = true;
+            keySourceLabel = 'cheie RSA generată automat';
+          }
+        }
+
+        if (!(lowerBound < n && n < upperBound)) {
+          output.innerHTML = `
+            <div class="bad">
+              Cheia aleasă nu respectă condiția de model: 27<sup>${k}</sup> &lt; n &lt; 27<sup>${l}</sup>.
+              Pentru datele tale, n = ${n}, iar limitele sunt ${lowerBound} și ${upperBound}.
+            </div>
+          `;
+          return;
+        }
+
+        if (!usesDirectKeys && hasManualE) {
+          e = BigInt(eText);
+
+          if (e <= 1n || e >= phi) {
+            output.innerHTML = '<div class="bad">Exponentul public e trebuie să satisfacă 1 &lt; e &lt; φ(n).</div>';
+            return;
+          }
+
+          if (gcd(e, phi) !== 1n) {
+            output.innerHTML = '<div class="bad">Exponentul public e trebuie să fie coprim cu φ(n).</div>';
+            return;
+          }
+        } else if (!usesDirectKeys) {
+          e = chooseAutomaticE(phi);
+          autoGeneratedE = true;
+        }
+
+        if (!usesDirectKeys) {
+          d = modInverse(e, phi);
+        } else if (d === null) {
+          d = modInverse(e, phi);
+        }
+        const plainBlocks = splitIntoBlocks(text, k);
+
+        const rows = plainBlocks.map((block, index) => {
+          const plainNumber = rsaBlockToNumber(block);
+          if (plainNumber >= n) {
+            throw new Error(`Blocul ${index + 1} produce valoarea ${plainNumber}, care trebuie să fie mai mică decât n.`);
+          }
+
+          const cipherNumber = modPow(plainNumber, e, n);
+          const cipherBlock = rsaNumberToBlock(cipherNumber, l);
+          const decryptedNumber = modPow(cipherNumber, d, n);
+          const decryptedBlock = rsaNumberToBlock(decryptedNumber, block.length);
+
+          return {
+            index: index + 1,
+            block,
+            plainNumber: plainNumber.toString(),
+            cipherNumber: cipherNumber.toString(),
+            cipherBlock,
+            decryptedNumber: decryptedNumber.toString(),
+            decryptedBlock
+          };
+        });
+
+        const cipherText = rows.map(row => row.cipherBlock).join(' ');
+        const decryptedText = rows.map(row => row.decryptedBlock).join('');
+
+        let html = `
+          <h2 class="section-title">Soluție — Cifrare și descifrare RSA</h2>
+
+          <div class="sub-title">Date și chei</div>
+          <div class="rsa-meta-grid">
+            <div class="rsa-meta-card">
+              <strong>Setări introduse</strong>
+              <div>Text clar: <b>${escapeHtml(text)}</b></div>
+              <div>k = <b>${k}</b>, l = <b>${l}</b></div>
+              <div>Sursă chei: <b>${keySourceLabel}</b></div>
+              <div>${usesDirectKeys ? (p && q ? `p = <b>${p}</b>, q = <b>${q}</b> (deduse din n)` : 'p și q nu au putut fi deduse automat din n.') : `p = <b>${p}</b>, q = <b>${q}</b> ${autoGeneratedPq ? '(alese automat)' : '(introduse manual)'}`}</div>
+            </div>
+            <div class="rsa-meta-card">
+              <strong>Cheie publică</strong>
+              <div>${usesDirectKeys ? `n = <b>${n}</b>` : `n = p · q = <b>${n}</b>`}</div>
+              <div>e = <b>${e}</b> ${usesDirectKeys ? '(din cheia publică introdusă direct)' : (autoGeneratedE ? '(ales automat)' : '(introdus manual)')}</div>
+              <div>K<sub>E</sub> = (<b>${n}</b>, <b>${e}</b>)</div>
+            </div>
+            <div class="rsa-meta-card">
+              <strong>Cheie de descifrare</strong>
+              <div>${phi ? `φ(n) = (p - 1)(q - 1) = <b>${phi}</b>` : 'φ(n) nu a putut fi calculat automat.'}</div>
+              <div>${usesDirectKeys && hasDirectD ? `d = <b>${d}</b> (din cheia privată introdusă direct)` : `d = e<sup>-1</sup> mod φ(n) = <b>${d}</b>`}</div>
+              <div>K<sub>D</sub> = <b>${d}</b></div>
+            </div>
+            <div class="rsa-meta-card">
+              <strong>Condiția blocurilor</strong>
+              <div>27<sup>${k}</sup> = <b>${lowerBound}</b></div>
+              <div>27<sup>${l}</sup> = <b>${upperBound}</b></div>
+              <div>Condiția 27<sup>k</sup> &lt; n &lt; 27<sup>l</sup> este îndeplinită.</div>
+            </div>
+          </div>
+
+          <div class="sub-title">Blocuri și completarea căsuțelor</div>
+          <div class="rsa-table">
+            <div class="rsa-row rsa-header">
+              <div>Bloc</div>
+              <div>Text clar</div>
+              <div>m</div>
+              <div>c = m<sup>e</sup> mod n</div>
+              <div>Text cifrat</div>
+              <div>m' = c<sup>d</sup> mod n</div>
+              <div>Text descifrat</div>
+            </div>
+        `;
+
+        rows.forEach(row => {
+          html += `
+            <div class="rsa-row">
+              ${renderRsaValue(String(row.index))}
+              ${renderRsaValue(row.block, 'rsa-text')}
+              ${renderRsaValue(row.plainNumber)}
+              ${renderRsaValue(row.cipherNumber)}
+              ${renderRsaValue(row.cipherBlock, 'rsa-text')}
+              ${renderRsaValue(row.decryptedNumber)}
+              ${renderRsaValue(row.decryptedBlock, 'rsa-text')}
+            </div>
+          `;
+        });
+
+        html += `
+          </div>
+
+          <div class="sub-title">Rezultate finale</div>
+          <div class="inline-row">
+            <span class="label-text">Blocuri text clar =</span> ${renderRsaValue(plainBlocks.join(' | '), 'rsa-text')}
+          </div>
+          <div class="inline-row">
+            <span class="label-text">Text cifrat =</span> ${renderRsaValue(cipherText, 'rsa-text')}
+          </div>
+          <div class="inline-row">
+            <span class="label-text">Text descifrat =</span> ${renderRsaValue(decryptedText, 'rsa-text')}
+          </div>
+
+          <div class="footer-result">
+            Concluzie: programul a completat toate căsuțele RSA pentru cheia K<sub>E</sub> = (${n}, ${e}) și a verificat corect descifrarea cu d = ${d}.
+          </div>
+        `;
+
+        output.innerHTML = html;
+      } catch (e) {
+        output.innerHTML = `<div class="bad">Eroare RSA: ${e.message}</div>`;
+      }
     }
 
     function calculeazaIteratie(n, a, s, t) {
@@ -853,12 +2009,16 @@
   const millerPanel = document.getElementById('millerPanel');
   const pollardPanel = document.getElementById('pollardPanel');
   const fermatPanel = document.getElementById('fermatPanel');
+  const rsaPanel = document.getElementById('rsaPanel');
+  const signaturePanel = document.getElementById('signaturePanel');
   const desc = document.getElementById('methodDescription');
   const output = document.getElementById('output');
 
   millerPanel.classList.add('hidden');
   pollardPanel.classList.add('hidden');
   fermatPanel.classList.add('hidden');
+  rsaPanel.classList.add('hidden');
+  signaturePanel.classList.add('hidden');
 
   if (method === 'miller') {
     millerPanel.classList.remove('hidden');
@@ -898,7 +2058,7 @@
       </div>
     `;
   }
-  else {
+  else if (method === 'fermat') {
     fermatPanel.classList.remove('hidden');
     desc.textContent = 'Calculator activ: Metoda lui Fermat';
 
@@ -913,6 +2073,45 @@
         <div>- Apoi verifică succesiv valorile <strong>t² - n</strong> pentru <strong>t = t₀ + 1, t₀ + 2, ...</strong>.</div>
         <div>- Când <strong>t² - n</strong> devine pătrat perfect, se determină automat cei doi factori.</div>
         <div>- După completare, apasă pe <strong>Rezolvă prin Fermat</strong>.</div>
+      </div>
+    `;
+  }
+  else {
+    if (method === 'signature') {
+      signaturePanel.classList.remove('hidden');
+      desc.textContent = 'Calculator activ: Semnătură digitală RSA și ToyHash';
+
+      output.innerHTML = `
+        <div style="border: 1px solid #dbe3ef; border-radius: 18px; padding: 24px; background: #ffffff; line-height: 1.8;">
+          <h3 style="margin: 0 0 16px; color: #1e40af; font-size: 22px;">
+            Instrucțiuni pentru semnătura digitală RSA
+          </h3>
+          <div>- Completează mesajul, precum și cheia publică <strong>(n, e)</strong>.</div>
+          <div>- Dacă vrei ca programul să genereze semnătura, completează și <strong>d</strong>.</div>
+          <div>- Dacă ai deja o semnătură <strong>s</strong>, o poți introduce direct pentru verificare.</div>
+          <div>- Câmpul <strong>Mesaj 2</strong> este opțional și poate fi folosit pentru scenarii de tip mesaj interceptat sau coliziune ToyHash.</div>
+          <div>- Programul calculează automat ToyHash, semnătura, verificarea și o coliziune ToyHash de același tip.</div>
+        </div>
+      `;
+      return;
+    }
+
+    rsaPanel.classList.remove('hidden');
+    desc.textContent = 'Calculator activ: Cifrare și descifrare RSA';
+
+    output.innerHTML = `
+      <div style="border: 1px solid #dbe3ef; border-radius: 18px; padding: 24px; background: #ffffff; line-height: 1.8;">
+        <h3 style="margin: 0 0 16px; color: #1e40af; font-size: 22px;">
+          Instrucțiuni pentru secțiunea RSA
+        </h3>
+        <div>- Introdu textul clar pe care vrei să îl cifrezi.</div>
+        <div>- Completează obligatoriu <strong>k</strong> și <strong>l</strong>.</div>
+        <div>- Valorile <strong>p</strong>, <strong>q</strong> și <strong>e</strong> sunt opționale: dacă le lași goale, programul alege automat o cheie validă.</div>
+        <div>- Dacă ai cheia publică <strong>(n, e)</strong>, o poți completa direct; programul încearcă să deducă automat <strong>p</strong>, <strong>q</strong>, <strong>φ(n)</strong> și <strong>d</strong>.</div>
+        <div>- Dacă ai și cheia privată, poți completa opțional și <strong>d</strong>; atunci programul o folosește direct.</div>
+        <div>- Programul calculează automat <strong>n = p·q</strong>, <strong>φ(n)</strong>, cheia de descifrare <strong>d</strong> și verifică relația <strong>27^k &lt; n &lt; 27^l</strong>.</div>
+        <div>- Apoi completează căsuțele pentru fiecare bloc: text clar, echivalent numeric, text cifrat și descifrare.</div>
+        <div>- Alfabetul folosit este cel de 27 de simboluri: spațiu = 0, A = 1, ..., Z = 26.</div>
       </div>
     `;
   }
@@ -1057,6 +2256,8 @@ function solveFermat() {
     document.getElementById('solveMillerBtn').addEventListener('click', solveMiller);
     document.getElementById('solvePollardBtn').addEventListener('click', solvePollard);
     document.getElementById('solveFermatBtn').addEventListener('click', solveFermat);
+    document.getElementById('solveRsaBtn').addEventListener('click', solveRsa);
+    document.getElementById('solveSignatureBtn').addEventListener('click', solveSignature);
     
     switchMethod();
 
