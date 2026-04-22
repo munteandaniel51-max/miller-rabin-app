@@ -533,6 +533,10 @@
 
     <!-- RSA -->
     <div class="panel hidden" id="rsaPanel">
+      <div style="margin-bottom:16px; padding:12px 16px; border-radius:12px; background:#fff7ed; border:1px solid #fed7aa; color:#9a3412; font-size:14px;">
+        ⚠️ Acest calculator este experimental. Rezultatele pot varia în funcție de complexitatea problemei.
+      </div>
+
       <div class="form-grid">
         <div>
           <label for="rsaTextInput">Text clar</label>
@@ -589,6 +593,10 @@
 
     <!-- Signature -->
     <div class="panel hidden" id="signaturePanel">
+      <div style="margin-bottom:16px; padding:12px 16px; border-radius:12px; background:#fff7ed; border:1px solid #fed7aa; color:#9a3412; font-size:14px;">
+        ⚠️ Acest calculator este experimental. Rezultatele pot varia în funcție de complexitatea problemei.
+      </div>
+
       <div class="form-grid">
         <div>
           <label for="signatureMessageInput">Mesaj</label>
@@ -868,6 +876,10 @@
 
     function renderRsaValue(value, extraClass = '') {
       return `<div class="rsa-value ${extraClass}">${escapeHtml(value)}</div>`;
+    }
+
+    function formatRsaDisplayText(value) {
+      return value.replace(/ /g, '_');
     }
 
     function normalizeToyHashText(text) {
@@ -1624,12 +1636,12 @@
           html += `
             <div class="rsa-row">
               ${renderRsaValue(String(row.index))}
-              ${renderRsaValue(row.block, 'rsa-text')}
+              ${renderRsaValue(formatRsaDisplayText(row.block), 'rsa-text')}
               ${renderRsaValue(row.plainNumber)}
               ${renderRsaValue(row.cipherNumber)}
-              ${renderRsaValue(row.cipherBlock, 'rsa-text')}
+              ${renderRsaValue(formatRsaDisplayText(row.cipherBlock), 'rsa-text')}
               ${renderRsaValue(row.decryptedNumber)}
-              ${renderRsaValue(row.decryptedBlock, 'rsa-text')}
+              ${renderRsaValue(formatRsaDisplayText(row.decryptedBlock), 'rsa-text')}
             </div>
           `;
         });
@@ -1639,13 +1651,13 @@
 
           <div class="sub-title">Rezultate finale</div>
           <div class="inline-row">
-            <span class="label-text">Blocuri text clar =</span> ${renderRsaValue(plainBlocks.join(' | '), 'rsa-text')}
+            <span class="label-text">Blocuri text clar =</span> ${renderRsaValue(formatRsaDisplayText(plainBlocks.join(' | ')), 'rsa-text')}
           </div>
           <div class="inline-row">
-            <span class="label-text">Text cifrat =</span> ${renderRsaValue(cipherText, 'rsa-text')}
+            <span class="label-text">Text cifrat =</span> ${renderRsaValue(formatRsaDisplayText(cipherText), 'rsa-text')}
           </div>
           <div class="inline-row">
-            <span class="label-text">Text descifrat =</span> ${renderRsaValue(decryptedText, 'rsa-text')}
+            <span class="label-text">Text descifrat =</span> ${renderRsaValue(formatRsaDisplayText(decryptedText), 'rsa-text')}
           </div>
 
           <div class="footer-result">
@@ -2042,10 +2054,6 @@
     desc.textContent = 'Calculator activ: Metoda ρ a lui Pollard';
 
     output.innerHTML = `
-      <div style="margin-bottom:16px; padding:12px 16px; border-radius:12px; background:#fff7ed; border:1px solid #fed7aa; color:#9a3412; font-size:14px;">
-        ⚠️ Acest calculator este experimental. Rezultatele pot varia în funcție de complexitatea problemei și de funcția f(x) aleasă.
-      </div>
-
       <div style="border: 1px solid #dbe3ef; border-radius: 18px; padding: 24px; background: #ffffff; line-height: 1.8;">
         <h3 style="margin: 0 0 16px; color: #1e40af; font-size: 22px;">
           Instrucțiuni de completare pentru metoda ρ a lui Pollard
