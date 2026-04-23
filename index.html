@@ -427,6 +427,26 @@
   color: #1e3a8a;
 }
 
+.rsa-work-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.rsa-work-item {
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 12px;
+  background: #f8fafc;
+}
+
+.rsa-work-item strong {
+  display: block;
+  margin-bottom: 8px;
+  color: #1e3a8a;
+}
+
 @media (max-width: 1100px) {
   .rsa-row {
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -539,8 +559,13 @@
 
       <div class="form-grid">
         <div>
-          <label for="rsaTextInput">Text clar</label>
-          <input id="rsaTextInput" type="text" />
+          <label for="rsaPlaintextInput">Text clar</label>
+          <input id="rsaPlaintextInput" type="text" placeholder="completează doar dacă problema cere cifrare" />
+        </div>
+
+        <div>
+          <label for="rsaCiphertextInput">Text cifrat</label>
+          <input id="rsaCiphertextInput" type="text" placeholder="completează doar dacă problema cere descifrare" />
         </div>
 
         <div>
@@ -811,6 +836,7 @@
     function normalizeRsaText(text) {
       return stripDiacritics(
         text
+        .replace(/_/g, ' ')
         .replace(/[ȘŞ]/g, 'S')
         .replace(/[șş]/g, 's')
         .replace(/[ȚŢ]/g, 'T')
@@ -819,6 +845,21 @@
         .toUpperCase()
         .replace(/\r?\n/g, ' ')
         .trim();
+    }
+
+    function normalizeRsaSequenceInput(text) {
+      return stripDiacritics(
+        text
+        .replace(/[ȘŞ]/g, 'S')
+        .replace(/[șş]/g, 's')
+        .replace(/[ȚŢ]/g, 'T')
+        .replace(/[țţ]/g, 't')
+      )
+        .toUpperCase()
+        .replace(/\s+/g, '')
+        .replace(/[|,;()[\]{}]/g, '')
+        .replace(/_/g, ' ')
+        .replace(/[^A-Z ]/g, '');
     }
 
     function splitIntoBlocks(text, blockSize) {
@@ -880,6 +921,69 @@
 
     function formatRsaDisplayText(value) {
       return value.replace(/ /g, '_');
+    }
+
+    function formatRsaBlockList(blocks, separator = ' ') {
+      return blocks.map(block => formatRsaDisplayText(block)).join(separator);
+    }
+
+    function buildRsaEncryptionRows(text, k, l, n, e, d) {
+      const plainBlocks = splitIntoBlocks(text, k);
+      const rows = plainBlocks.map((block, index) => {
+        const plainNumber = rsaBlockToNumber(block);
+        if (plainNumber >= n) {
+          throw new Error(`Blocul ${index + 1} produce valoarea ${plainNumber}, care trebuie să fie mai mică decât n.`);
+        }
+
+        const cipherNumber = modPow(plainNumber, e, n);
+        const cipherBlock = rsaNumberToBlock(cipherNumber, l);
+        const decryptedNumber = modPow(cipherNumber, d, n);
+        const decryptedBlock = rsaNumberToBlock(decryptedNumber, block.length);
+
+        return {
+          index: index + 1,
+          plainBlock: block,
+          plainNumber: plainNumber.toString(),
+          cipherNumber: cipherNumber.toString(),
+          cipherBlock,
+          decryptedNumber: decryptedNumber.toString(),
+          decryptedBlock
+        };
+      });
+
+      return {
+        rows,
+        plainBlocks,
+        cipherText: rows.map(row => row.cipherBlock).join(''),
+        decryptedText: rows.map(row => row.decryptedBlock).join('')
+      };
+    }
+
+    function buildRsaDecryptionRows(cipherText, k, l, n, d) {
+      const cipherBlocks = splitIntoBlocks(cipherText, l);
+      const rows = cipherBlocks.map((block, index) => {
+        const cipherNumber = rsaBlockToNumber(block);
+        if (cipherNumber >= n) {
+          throw new Error(`Blocul cifrat ${index + 1} produce valoarea ${cipherNumber}, care trebuie să fie mai mică decât n.`);
+        }
+
+        const plainNumber = modPow(cipherNumber, d, n);
+        const plainBlock = rsaNumberToBlock(plainNumber, k);
+
+        return {
+          index: index + 1,
+          cipherBlock: block,
+          cipherNumber: cipherNumber.toString(),
+          plainNumber: plainNumber.toString(),
+          plainBlock
+        };
+      });
+
+      return {
+        rows,
+        cipherBlocks,
+        plainText: rows.map(row => row.plainBlock).join('')
+      };
     }
 
     function normalizeToyHashText(text) {
@@ -1401,7 +1505,8 @@
       const output = document.getElementById('output');
 
       try {
-        const textInput = document.getElementById('rsaTextInput').value;
+        const plaintextInput = document.getElementById('rsaPlaintextInput').value;
+        const ciphertextInput = document.getElementById('rsaCiphertextInput').value;
         const kText = document.getElementById('rsaKInput').value.trim();
         const lText = document.getElementById('rsaLInput').value.trim();
         const pText = document.getElementById('rsaPInput').value.trim();
@@ -1411,12 +1516,18 @@
         const directEText = document.getElementById('rsaDirectEInput').value.trim();
         const directDText = document.getElementById('rsaDirectDInput').value.trim();
 
-        if (!textInput.trim() || !kText || !lText) {
-          output.innerHTML = '<div class="bad">Completează textul clar și valorile k, l pentru secțiunea RSA.</div>';
+        if ((!plaintextInput.trim() && !ciphertextInput.trim()) || (plaintextInput.trim() && ciphertextInput.trim())) {
+          output.innerHTML = '<div class="bad">Completează fie textul clar, fie textul cifrat, dar nu pe amândouă simultan.</div>';
           return;
         }
 
-        const text = normalizeRsaText(textInput);
+        if (!kText || !lText) {
+          output.innerHTML = '<div class="bad">Completează valorile k și l pentru secțiunea RSA.</div>';
+          return;
+        }
+
+        const plainText = plaintextInput.trim() ? normalizeRsaSequenceInput(plaintextInput) : '';
+        const cipherTextInput = ciphertextInput.trim() ? normalizeRsaSequenceInput(ciphertextInput) : '';
         const k = Number(kText);
         const l = Number(lText);
         const hasManualP = Boolean(pText);
@@ -1425,9 +1536,15 @@
         const hasDirectN = Boolean(directNText);
         const hasDirectE = Boolean(directEText);
         const hasDirectD = Boolean(directDText);
+        const mode = plainText ? 'encrypt' : 'decrypt';
 
-        if (!text) {
+        if (mode === 'encrypt' && !plainText) {
           output.innerHTML = '<div class="bad">Textul clar nu poate fi gol după normalizare.</div>';
+          return;
+        }
+
+        if (mode === 'decrypt' && !cipherTextInput) {
+          output.innerHTML = '<div class="bad">Textul cifrat nu poate fi gol după normalizare.</div>';
           return;
         }
 
@@ -1560,41 +1677,16 @@
         } else if (d === null) {
           d = modInverse(e, phi);
         }
-        const plainBlocks = splitIntoBlocks(text, k);
-
-        const rows = plainBlocks.map((block, index) => {
-          const plainNumber = rsaBlockToNumber(block);
-          if (plainNumber >= n) {
-            throw new Error(`Blocul ${index + 1} produce valoarea ${plainNumber}, care trebuie să fie mai mică decât n.`);
-          }
-
-          const cipherNumber = modPow(plainNumber, e, n);
-          const cipherBlock = rsaNumberToBlock(cipherNumber, l);
-          const decryptedNumber = modPow(cipherNumber, d, n);
-          const decryptedBlock = rsaNumberToBlock(decryptedNumber, block.length);
-
-          return {
-            index: index + 1,
-            block,
-            plainNumber: plainNumber.toString(),
-            cipherNumber: cipherNumber.toString(),
-            cipherBlock,
-            decryptedNumber: decryptedNumber.toString(),
-            decryptedBlock
-          };
-        });
-
-        const cipherText = rows.map(row => row.cipherBlock).join(' ');
-        const decryptedText = rows.map(row => row.decryptedBlock).join('');
-
         let html = `
           <h2 class="section-title">Soluție — Cifrare și descifrare RSA</h2>
+        `;
 
+        html += `
           <div class="sub-title">Date și chei</div>
           <div class="rsa-meta-grid">
             <div class="rsa-meta-card">
               <strong>Setări introduse</strong>
-              <div>Text clar: <b>${escapeHtml(text)}</b></div>
+              <div>${mode === 'encrypt' ? `Text clar: <b>${escapeHtml(formatRsaDisplayText(plainText))}</b>` : `Text cifrat: <b>${escapeHtml(formatRsaDisplayText(cipherTextInput))}</b>`}</div>
               <div>k = <b>${k}</b>, l = <b>${l}</b></div>
               <div>Sursă chei: <b>${keySourceLabel}</b></div>
               <div>${usesDirectKeys ? (p && q ? `p = <b>${p}</b>, q = <b>${q}</b> (deduse din n)` : 'p și q nu au putut fi deduse automat din n.') : `p = <b>${p}</b>, q = <b>${q}</b> ${autoGeneratedPq ? '(alese automat)' : '(introduse manual)'}`}</div>
@@ -1618,50 +1710,163 @@
               <div>Condiția 27<sup>k</sup> &lt; n &lt; 27<sup>l</sup> este îndeplinită.</div>
             </div>
           </div>
-
-          <div class="sub-title">Blocuri și completarea căsuțelor</div>
-          <div class="rsa-table">
-            <div class="rsa-row rsa-header">
-              <div>Bloc</div>
-              <div>Text clar</div>
-              <div>m</div>
-              <div>c = m<sup>e</sup> mod n</div>
-              <div>Text cifrat</div>
-              <div>m' = c<sup>d</sup> mod n</div>
-              <div>Text descifrat</div>
-            </div>
         `;
 
-        rows.forEach(row => {
+        let conclusionDetails = '';
+
+        if (mode === 'encrypt') {
+          const encryptionData = buildRsaEncryptionRows(plainText, k, l, n, e, d);
+
           html += `
-            <div class="rsa-row">
-              ${renderRsaValue(String(row.index))}
-              ${renderRsaValue(formatRsaDisplayText(row.block), 'rsa-text')}
-              ${renderRsaValue(row.plainNumber)}
-              ${renderRsaValue(row.cipherNumber)}
-              ${renderRsaValue(formatRsaDisplayText(row.cipherBlock), 'rsa-text')}
-              ${renderRsaValue(row.decryptedNumber)}
-              ${renderRsaValue(formatRsaDisplayText(row.decryptedBlock), 'rsa-text')}
+            <div class="sub-title">Cifrare</div>
+            <div class="rsa-table">
+              <div class="rsa-row rsa-header">
+                <div>Bloc</div>
+                <div>Text clar</div>
+                <div>m</div>
+                <div>c = m<sup>e</sup> mod n</div>
+                <div>Text cifrat</div>
+                <div>m' = c<sup>d</sup> mod n</div>
+                <div>Text descifrat</div>
+              </div>
+          `;
+
+          encryptionData.rows.forEach(row => {
+            html += `
+              <div class="rsa-row">
+                ${renderRsaValue(String(row.index))}
+                ${renderRsaValue(formatRsaDisplayText(row.plainBlock), 'rsa-text')}
+                ${renderRsaValue(row.plainNumber)}
+                ${renderRsaValue(row.cipherNumber)}
+                ${renderRsaValue(formatRsaDisplayText(row.cipherBlock), 'rsa-text')}
+                ${renderRsaValue(row.decryptedNumber)}
+                ${renderRsaValue(formatRsaDisplayText(row.decryptedBlock), 'rsa-text')}
+              </div>
+            `;
+          });
+
+          html += `
+            </div>
+            <div class="sub-title">Text final</div>
+            <div class="inline-row">
+              <span class="label-text">Text cifrat =</span> ${renderRsaValue(formatRsaDisplayText(encryptionData.cipherText), 'rsa-text')}
+            </div>
+            <div class="inline-row">
+              <span class="label-text">Text descifrat =</span> ${renderRsaValue(formatRsaDisplayText(encryptionData.decryptedText), 'rsa-text')}
             </div>
           `;
-        });
+
+          conclusionDetails = `
+            <div class="sub-title" style="margin-top:16px;">Rezultatele finale</div>
+            <div class="rsa-work-grid">
+              <div class="rsa-work-item"><strong>n</strong>${renderRsaValue(n.toString())}</div>
+              <div class="rsa-work-item"><strong>φ(n)</strong>${renderRsaValue(phi ? phi.toString() : '—')}</div>
+              <div class="rsa-work-item"><strong>e</strong>${renderRsaValue(e.toString())}</div>
+              <div class="rsa-work-item"><strong>d</strong>${renderRsaValue(d.toString())}</div>
+            </div>
+
+            <div class="sub-title">Text clar</div>
+            <div class="rsa-work-grid">
+              ${encryptionData.rows.map((row, index) => `<div class="rsa-work-item"><strong>b${index + 1}</strong>${renderRsaValue(row.plainNumber)}</div>`).join('')}
+            </div>
+            <div class="rsa-work-grid">
+              ${encryptionData.rows.map((row, index) => `<div class="rsa-work-item"><strong>bloc k${index + 1}</strong>${renderRsaValue(formatRsaDisplayText(row.plainBlock), 'rsa-text')}</div>`).join('')}
+            </div>
+            <div class="inline-row">
+              <span class="label-text">Text clar =</span> ${renderRsaValue(formatRsaDisplayText(plainText), 'rsa-text')}
+            </div>
+
+            <div class="sub-title">Text cifrat</div>
+            <div class="rsa-work-grid">
+              ${encryptionData.rows.map((row, index) => `<div class="rsa-work-item"><strong>bloc l${index + 1}</strong>${renderRsaValue(formatRsaDisplayText(row.cipherBlock), 'rsa-text')}</div>`).join('')}
+            </div>
+            <div class="rsa-work-grid">
+              ${encryptionData.rows.map((row, index) => `<div class="rsa-work-item"><strong>c${index + 1}</strong>${renderRsaValue(row.cipherNumber)}</div>`).join('')}
+            </div>
+            <div class="inline-row">
+              <span class="label-text">Text cifrat =</span> ${renderRsaValue(formatRsaDisplayText(encryptionData.cipherText), 'rsa-text')}
+            </div>
+          `;
+        } else {
+          const decryptionData = buildRsaDecryptionRows(cipherTextInput, k, l, n, d);
+
+          html += `
+            <div class="sub-title">Text cifrat</div>
+            <div class="inline-row">
+              <span class="label-text">Blocuri de l litere =</span> ${renderRsaValue(formatRsaBlockList(decryptionData.cipherBlocks, ' | '), 'rsa-text')}
+            </div>
+
+            <div class="sub-title">Echivalente numerice</div>
+            <div class="rsa-work-grid">
+          `;
+
+          decryptionData.rows.forEach(row => {
+            html += `
+              <div class="rsa-work-item">
+                <strong>c${row.index}</strong>
+                ${renderRsaValue(row.cipherNumber)}
+              </div>
+            `;
+          });
+
+          html += `
+            </div>
+            <div class="sub-title">Descifrare</div>
+            <div class="rsa-work-grid">
+          `;
+
+          decryptionData.rows.forEach(row => {
+            html += `
+              <div class="rsa-work-item">
+                <strong>b${row.index} = c${row.index}<sup>d</sup> mod n</strong>
+                ${renderRsaValue(row.plainNumber)}
+                <div style="margin-top:8px;">bloc de k litere: <b>${escapeHtml(formatRsaDisplayText(row.plainBlock))}</b></div>
+              </div>
+            `;
+          });
+
+          html += `
+            </div>
+            <div class="sub-title">Text final</div>
+            <div class="inline-row">
+              <span class="label-text">Text clar =</span> ${renderRsaValue(formatRsaDisplayText(decryptionData.plainText), 'rsa-text')}
+            </div>
+          `;
+
+          conclusionDetails = `
+            <div class="sub-title" style="margin-top:16px;">Rezultatele finale</div>
+            <div class="rsa-work-grid">
+              <div class="rsa-work-item"><strong>n</strong>${renderRsaValue(n.toString())}</div>
+              <div class="rsa-work-item"><strong>φ(n)</strong>${renderRsaValue(phi ? phi.toString() : '—')}</div>
+              <div class="rsa-work-item"><strong>e</strong>${renderRsaValue(e.toString())}</div>
+              <div class="rsa-work-item"><strong>d</strong>${renderRsaValue(d.toString())}</div>
+            </div>
+
+            <div class="sub-title">Text cifrat</div>
+            <div class="rsa-work-grid">
+              ${decryptionData.rows.map((row, index) => `<div class="rsa-work-item"><strong>bloc l${index + 1}</strong>${renderRsaValue(formatRsaDisplayText(row.cipherBlock), 'rsa-text')}</div>`).join('')}
+            </div>
+            <div class="rsa-work-grid">
+              ${decryptionData.rows.map((row, index) => `<div class="rsa-work-item"><strong>c${index + 1}</strong>${renderRsaValue(row.cipherNumber)}</div>`).join('')}
+            </div>
+
+            <div class="sub-title">Text descifrat</div>
+            <div class="rsa-work-grid">
+              ${decryptionData.rows.map((row, index) => `<div class="rsa-work-item"><strong>b${index + 1}</strong>${renderRsaValue(row.plainNumber)}</div>`).join('')}
+            </div>
+            <div class="rsa-work-grid">
+              ${decryptionData.rows.map((row, index) => `<div class="rsa-work-item"><strong>bloc k${index + 1}</strong>${renderRsaValue(formatRsaDisplayText(row.plainBlock), 'rsa-text')}</div>`).join('')}
+            </div>
+            <div class="inline-row">
+              <span class="label-text">Text clar =</span> ${renderRsaValue(formatRsaDisplayText(decryptionData.plainText), 'rsa-text')}
+            </div>
+          `;
+        }
 
         html += `
-          </div>
-
-          <div class="sub-title">Rezultate finale</div>
-          <div class="inline-row">
-            <span class="label-text">Blocuri text clar =</span> ${renderRsaValue(formatRsaDisplayText(plainBlocks.join(' | ')), 'rsa-text')}
-          </div>
-          <div class="inline-row">
-            <span class="label-text">Text cifrat =</span> ${renderRsaValue(formatRsaDisplayText(cipherText), 'rsa-text')}
-          </div>
-          <div class="inline-row">
-            <span class="label-text">Text descifrat =</span> ${renderRsaValue(formatRsaDisplayText(decryptedText), 'rsa-text')}
-          </div>
-
           <div class="footer-result">
-            Concluzie: programul a completat toate căsuțele RSA pentru cheia K<sub>E</sub> = (${n}, ${e}) și a verificat corect descifrarea cu d = ${d}.
+            <div>Concluzie: programul a completat căsuțele RSA pe baza datelor introduse și a recunoscut spațiile libere cu semnul _.</div>
+            ${conclusionDetails}
           </div>
         `;
 
@@ -2112,13 +2317,14 @@
         <h3 style="margin: 0 0 16px; color: #1e40af; font-size: 22px;">
           Instrucțiuni pentru secțiunea RSA
         </h3>
-        <div>- Introdu textul clar pe care vrei să îl cifrezi.</div>
+        <div>- Completează fie <strong>Text clar</strong> pentru cifrare, fie <strong>Text cifrat</strong> pentru descifrare.</div>
         <div>- Completează obligatoriu <strong>k</strong> și <strong>l</strong>.</div>
         <div>- Valorile <strong>p</strong>, <strong>q</strong> și <strong>e</strong> sunt opționale: dacă le lași goale, programul alege automat o cheie validă.</div>
         <div>- Dacă ai cheia publică <strong>(n, e)</strong>, o poți completa direct; programul încearcă să deducă automat <strong>p</strong>, <strong>q</strong>, <strong>φ(n)</strong> și <strong>d</strong>.</div>
         <div>- Dacă ai și cheia privată, poți completa opțional și <strong>d</strong>; atunci programul o folosește direct.</div>
         <div>- Programul calculează automat <strong>n = p·q</strong>, <strong>φ(n)</strong>, cheia de descifrare <strong>d</strong> și verifică relația <strong>27^k &lt; n &lt; 27^l</strong>.</div>
         <div>- Apoi completează căsuțele pentru fiecare bloc: text clar, echivalent numeric, text cifrat și descifrare.</div>
+        <div>- Pentru spațiile libere poți folosi semnul <strong>_</strong>, iar programul îl recunoaște automat.</div>
         <div>- Alfabetul folosit este cel de 27 de simboluri: spațiu = 0, A = 1, ..., Z = 26.</div>
       </div>
     `;
